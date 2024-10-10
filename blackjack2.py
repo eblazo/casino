@@ -88,20 +88,3 @@ print(f"Player Score:{check_score('dealer')}")
 print()
 player_turn()
 dealer_turn()
-
-
-"""
-while true:
-    get the hand set up
-    show the cards
-    check if someone has lost
-    have it be the players turn
-        while the last uption was hit
-            give them another option
-            check if the player has lost or blackjack
-            if blackjack
-                end their turn
-        
-    have it be the dealers turn
-    payout
-"""
