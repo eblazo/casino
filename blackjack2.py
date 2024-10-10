@@ -1,11 +1,11 @@
 from random import shuffle
 from card import Card
 
-
 shoe = []
 player_cards = []
 dealer_cards = []
-
+p = 'player'
+d = 'dealer'
 
 
 def reshuffle():
@@ -23,6 +23,7 @@ def deal():
     dealer_cards.append(shoe.pop())
     dealer_cards[0].face_up = False
 
+
 def show_cards():
     print('your cards')
     for card in player_cards:
@@ -32,13 +33,14 @@ def show_cards():
     for card in dealer_cards:
         print(card.named())
 
+
 #Add aces being worth 10 or 1 eventually
 def check_score(competitor):
     score = 0
 
-    if competitor == 'player':
+    if competitor == p:
         cards = player_cards
-    elif competitor == 'dealer':
+    elif competitor == d:
         cards = dealer_cards
     else:
         raise Exception('Arg must be \'player\' or \'dealer\'')
@@ -48,10 +50,16 @@ def check_score(competitor):
 
     return score
 
-def hit(player: bool):
-    if player:
+
+def hit(player):
+    if player == p:
         player_cards.append(shoe.pop())
-    dealer_cards.append(shoe.pop())
+    elif player == d:
+        dealer_cards.append(shoe.pop())
+    else:
+        raise ValueError('An argument that was not "p" or "d" was passed for hit()')
+
+
 
 def player_turn():
     print('player turn')
@@ -61,20 +69,26 @@ def player_turn():
         if decision == 's':
             break
         if decision == 'h':
-            hit(True)
-            show_cards()
+            hit(p)
+            print(f"player: {check_score(p)}")
+            check_bust()
 
-            print(f"player: {check_score('player')}")
 
 def dealer_turn():
     print('dealer turn')
-    while check_score('dealer') < 17:
-        hit(False)
-        show_cards()
-        check_score('dealer')
+    while check_score(d) < 17:
+        hit(d)
+        print(f"dealer: {check_score(d)}")
+        check_bust()
 
-def decide_winner():
-    pass
+
+def check_bust():
+    if check_score(p) > 21:
+        exit(f'{p} bust!')
+    if check_score(d) > 21:
+        exit(f'{d} bust!')
+
+
 
 
 # Getting the hand set up
@@ -82,9 +96,17 @@ winner = str()
 reshuffle()
 deal()
 show_cards()
-print(f"Player Score:{check_score('player')}")
-print(f"Player Score:{check_score('dealer')}")
-
+print(f"Player Score:{check_score(p)}")
+print(f"Dealer Score:{check_score(d)}")
 print()
+check_bust()
+
 player_turn()
 dealer_turn()
+
+if check_score(p) > check_score(d):
+    exit(f'{p} wins')
+elif check_score(p) < check_score(d):
+    exit(f'{d} wins')
+else:
+    exit('standoff')
