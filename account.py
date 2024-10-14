@@ -17,6 +17,11 @@ class Account:
     def add_hundred(self):
         self._balance += 100
 
+    def roulette_bet(self):
+        self._balance -=5
+
+    def win(self, amount):
+        self._balance += amount
 
     def place_bet(self, bet_amount):
         self.invalid_bet_message = ''
@@ -25,12 +30,5 @@ class Account:
         else:
             self.invalid_bet_message = 'You cannot bet more than you have!'
 
-
-
     def __str__(self):
         return '$' + str(self.balance)
-
-
-
-
-

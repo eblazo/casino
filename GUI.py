@@ -3,7 +3,7 @@ import sys
 import random
 import time
 from account import Account
-from Roulette import create_board
+from Roulette import Roulette
 
 # Initialize Pygame
 pygame.init()
@@ -32,16 +32,16 @@ GREEN3 = (0, 25, 0)
 font = pygame.font.SysFont(None, 48)
 title_font = pygame.font.SysFont(None, 96)
 small_font = pygame.font.SysFont(None, 36)
-
+"""
+Menu, Account, Back Buttons
+"""
 # Create displayed message
 message = title_font.render("GVSU Casino", True, BLACK)
-
 # Create buttons for menu and account screens
 button_width, button_height = 200, 50
 blue_button1 = pygame.Rect(300, 200, button_width, button_height)
 blue_button2 = pygame.Rect(300, 300, button_width, button_height)
 blue_button3 = pygame.Rect(300, 400, button_width, button_height)
-
 # Creates text for menu screen buttons
 menu_button1_text = font.render("Slots", True, WHITE)
 menu_button2_text = font.render("Roulette", True, WHITE)
@@ -56,12 +56,14 @@ add_button3_text = font.render("$100", True, WHITE)
 back_button = pygame.Rect(0, 0, 120, 40)
 back_button_text = small_font.render("Back", True, WHITE)
 
+"""
+Slot Buttons and instantiation 
+"""
 # Create bet button
 bet_button = pygame.Rect(360, 500, 60, 50)
 spin_button = pygame.Rect(460, 500, 100, 50)
 
 # Sets current screen to menu
-current_screen = 0
 bet_text = ''
 invalid_bet_message = ''
 message_rect = pygame.Rect(200, 450, 400, 50)
@@ -69,8 +71,155 @@ message_rect = pygame.Rect(200, 450, 400, 50)
 # Create balance button outside the loop
 balance_button = pygame.Rect(680, 0, 120, 40)
 
+"""
+Roulette Buttons and instantiation
+"""
+button_width, button_height = 50, 50
+column_bet_width, column_bet_height = 100, 50
+three12_width, three12_height = 200, 50
+other_bets_width, other_bets_height = 100, 50
+first_row_y = 350
+second_row_y = 400
+third_row_y = 450
+
+first12 = pygame.Rect(80, 500, three12_width, three12_height)
+second12 = pygame.Rect(280, 500, three12_width, three12_height)
+third12 = pygame.Rect(480, 500, three12_width, three12_height)
+button_1to18 = pygame.Rect(80, 550, other_bets_width, button_height)
+even = pygame.Rect(180, 550, other_bets_width, other_bets_height)
+red = pygame.Rect(280, 550, other_bets_width, other_bets_height)
+black = pygame.Rect(380, 550, other_bets_width, other_bets_height)
+odd = pygame.Rect(480, 550, other_bets_width, other_bets_height)
+button_19to36 = pygame.Rect(580, 550, other_bets_width, other_bets_height)
+
+# Top Row
+button0 = pygame.Rect(30, first_row_y, button_width, button_height * 3)
+button3 = pygame.Rect(80, first_row_y, button_width, button_height)
+button6 = pygame.Rect(130, first_row_y, button_width, button_height)
+button9 = pygame.Rect(180, first_row_y, button_width, button_height)
+button12 = pygame.Rect(230, first_row_y, button_width, button_height)
+button15 = pygame.Rect(280, first_row_y, button_width, button_height)
+button18 = pygame.Rect(330, first_row_y, button_width, button_height)
+button21 = pygame.Rect(380, first_row_y, button_width, button_height)
+button24 = pygame.Rect(430, first_row_y, button_width, button_height)
+button27 = pygame.Rect(480, first_row_y, button_width, button_height)
+button30 = pygame.Rect(530, first_row_y, button_width, button_height)
+button33 = pygame.Rect(580, first_row_y, button_width, button_height)
+button36 = pygame.Rect(630, first_row_y, button_width, button_height)
+top_column_bet = pygame.Rect(680, first_row_y, column_bet_width, column_bet_height)
+
+# Middle Row
+button2 = pygame.Rect(80, second_row_y, button_width, button_height)
+button5 = pygame.Rect(130, second_row_y, button_width, button_height)
+button8 = pygame.Rect(180, second_row_y, button_width, button_height)
+button11 = pygame.Rect(230, second_row_y, button_width, button_height)
+button14 = pygame.Rect(280, second_row_y, button_width, button_height)
+button17 = pygame.Rect(330, second_row_y, button_width, button_height)
+button20 = pygame.Rect(380, second_row_y, button_width, button_height)
+button23 = pygame.Rect(430, second_row_y, button_width, button_height)
+button26 = pygame.Rect(480, second_row_y, button_width, button_height)
+button29 = pygame.Rect(530, second_row_y, button_width, button_height)
+button32 = pygame.Rect(580, second_row_y, button_width, button_height)
+button35 = pygame.Rect(630, second_row_y, button_width, button_height)
+middle_column_bet = pygame.Rect(680, second_row_y, column_bet_width, column_bet_height)
+
+# Bottom Row
+button1 = pygame.Rect(80, third_row_y, button_width, button_height)
+button4 = pygame.Rect(130, third_row_y, button_width, button_height)
+button7 = pygame.Rect(180, third_row_y, button_width, button_height)
+button10 = pygame.Rect(230, third_row_y, button_width, button_height)
+button13 = pygame.Rect(280, third_row_y, button_width, button_height)
+button16 = pygame.Rect(330, third_row_y, button_width, button_height)
+button19 = pygame.Rect(380, third_row_y, button_width, button_height)
+button22 = pygame.Rect(430, third_row_y, button_width, button_height)
+button25 = pygame.Rect(480, third_row_y, button_width, button_height)
+button28 = pygame.Rect(530, third_row_y, button_width, button_height)
+button31 = pygame.Rect(580, third_row_y, button_width, button_height)
+button34 = pygame.Rect(630, third_row_y, button_width, button_height)
+bottom_column_bet = pygame.Rect(680, third_row_y, column_bet_width, column_bet_height)
+
+# Puts labels on button
+# Out of Board Bets
+first12_text = font.render("First 12", True, WHITE)
+second12_text = font.render("Second 12", True, WHITE)
+third12_text = font.render("Third 12", True, WHITE)
+button_1to18_text = small_font.render("1 to 18", True, WHITE)
+button_19to36_text = small_font.render("19 to 36", True, WHITE)
+even_text = font.render("Even", True, WHITE)
+odd_text = font.render("Odd", True, WHITE)
+red_text = font.render("Red", True, WHITE)
+black_text = font.render("Black", True, WHITE)
+
+# Top Row
+button0_text = font.render("0", True, BLACK)
+button3_text = font.render("3", True, WHITE)
+button6_text = font.render("6", True, WHITE)
+button9_text = font.render("9", True, WHITE)
+button12_text = font.render("12", True, WHITE)
+button15_text = font.render("15", True, WHITE)
+button18_text = font.render("18", True, WHITE)
+button21_text = font.render("21", True, WHITE)
+button24_text = font.render("24", True, WHITE)
+button27_text = font.render("27", True, WHITE)
+button30_text = font.render("30", True, WHITE)
+button33_text = font.render("33", True, WHITE)
+button36_text = font.render("36", True, WHITE)
+top_column_text = small_font.render("2 for 1", True, WHITE)
+
+# Middle Row
+button2_text = font.render("2", True, WHITE)
+button5_text = font.render("5", True, WHITE)
+button8_text = font.render("8", True, WHITE)
+button11_text = font.render("11", True, WHITE)
+button14_text = font.render("14", True, WHITE)
+button17_text = font.render("17", True, WHITE)
+button20_text = font.render("20", True, WHITE)
+button23_text = font.render("23", True, WHITE)
+button26_text = font.render("26", True, WHITE)
+button29_text = font.render("29", True, WHITE)
+button32_text = font.render("32", True, WHITE)
+button35_text = font.render("35", True, WHITE)
+middle_column_text = small_font.render("2 for 1", True, WHITE)
+
+# Bottom Row
+button1_text = font.render("1", True, WHITE)
+button4_text = font.render("4", True, WHITE)
+button7_text = font.render("7", True, WHITE)
+button10_text = font.render("10", True, WHITE)
+button13_text = font.render("13", True, WHITE)
+button16_text = font.render("16", True, WHITE)
+button19_text = font.render("19", True, WHITE)
+button22_text = font.render("22", True, WHITE)
+button25_text = font.render("25", True, WHITE)
+button28_text = font.render("28", True, WHITE)
+button31_text = font.render("31", True, WHITE)
+button34_text = font.render("34", True, WHITE)
+bottom_column_text = small_font.render("2 for 1", True, WHITE)
+roulette_game = Roulette()
+
+"""
+Blackjack buttons
+"""
+# Rectangles for action buttons on the right side
+button_width, button_height = 200, 50
+bj_small_bet = pygame.Rect(600, 330, 60, button_height)
+bj_medium_bet = pygame.Rect(670, 330, 60, button_height)
+bj_large_bet = pygame.Rect(740, 330, 60, button_height)
+
+bj_stand = pygame.Rect(600, 400, button_width, button_height)
+bj_hit = pygame.Rect(600, 470, button_width, button_height)
+bj_double = pygame.Rect(600, 540, button_width, button_height)
+
+# Creates text for blackjack right side action buttons
+small_bet_text = small_font.render("$5", True, BLACK)
+medium_bet_text = small_font.render("$10", True, BLACK)
+large_bet_text = small_font.render("$25", True, BLACK)
+stand_text = font.render("Stand", True, BLACK)
+hit_text = font.render("Hit", True, BLACK)
+double_text = font.render("Double", True, BLACK)
 roulette_bet_position = None
 
+current_screen = 0
 # Main loop
 running = True
 while running:
@@ -85,27 +234,127 @@ while running:
         # handles mouse clicks on various buttons
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
+            # Universal back and account button
+            if back_button.collidepoint(mouse_pos):
+                current_screen = 0
+            if balance_button.collidepoint(mouse_pos):
+                current_screen = 4
+
             # Slot machine screen events
             if current_screen == 1:
                 if spin_button.collidepoint(mouse_pos):
                     # makes sure bet is not subtracted from balance if bet is above 20
                     if 0 < int(bet_text) <= 20:
                         account.place_bet(int(bet_text))
-                elif back_button.collidepoint(mouse_pos):
-                    current_screen = 0
 
             # Roulette screen events
             if current_screen == 2:
-                if back_button.collidepoint(mouse_pos):
-                    current_screen = 0
-                elif button0.collidepoint(mouse_pos):
-                    roulette_bet_position = 0
+                if account.balance >= 5:
+                    if button0.collidepoint(mouse_pos):
+                        roulette_game.bet_position("0", account)
+                    elif button1.collidepoint(mouse_pos):
+                        roulette_game.bet_position("1", account)
+                    elif button2.collidepoint(mouse_pos):
+                        roulette_game.bet_position("2", account)
+                    elif button3.collidepoint(mouse_pos):
+                        roulette_game.bet_position("3", account)
+                    elif button4.collidepoint(mouse_pos):
+                        roulette_game.bet_position("4", account)
+                    elif button5.collidepoint(mouse_pos):
+                        roulette_game.bet_position("5", account)
+                    elif button6.collidepoint(mouse_pos):
+                        roulette_game.bet_position("6", account)
+                    elif button7.collidepoint(mouse_pos):
+                        roulette_game.bet_position("7", account)
+                    elif button8.collidepoint(mouse_pos):
+                        roulette_game.bet_position("8", account)
+                    elif button9.collidepoint(mouse_pos):
+                        roulette_game.bet_position("9", account)
+                    elif button10.collidepoint(mouse_pos):
+                        roulette_game.bet_position("10", account)
+                    elif button11.collidepoint(mouse_pos):
+                        roulette_game.bet_position("11", account)
+                    elif button12.collidepoint(mouse_pos):
+                        roulette_game.bet_position("12", account)
+                    elif button13.collidepoint(mouse_pos):
+                        roulette_game.bet_position("13", account)
+                    elif button14.collidepoint(mouse_pos):
+                        roulette_game.bet_position("14", account)
+                    elif button15.collidepoint(mouse_pos):
+                        roulette_game.bet_position("15", account)
+                    elif button16.collidepoint(mouse_pos):
+                        roulette_game.bet_position("16", account)
+                    elif button17.collidepoint(mouse_pos):
+                        roulette_game.bet_position("17", account)
+                    elif button18.collidepoint(mouse_pos):
+                        roulette_game.bet_position("18", account)
+                    elif button19.collidepoint(mouse_pos):
+                        roulette_game.bet_position("19", account)
+                    elif button20.collidepoint(mouse_pos):
+                        roulette_game.bet_position("20", account)
+                    elif button21.collidepoint(mouse_pos):
+                        roulette_game.bet_position("21", account)
+                    elif button22.collidepoint(mouse_pos):
+                        roulette_game.bet_position("22", account)
+                    elif button23.collidepoint(mouse_pos):
+                        roulette_game.bet_position("23", account)
+                    elif button24.collidepoint(mouse_pos):
+                        roulette_game.bet_position("24", account)
+                    elif button25.collidepoint(mouse_pos):
+                        roulette_game.bet_position("25", account)
+                    elif button26.collidepoint(mouse_pos):
+                        roulette_game.bet_position("26", account)
+                    elif button27.collidepoint(mouse_pos):
+                        roulette_game.bet_position("27", account)
+                    elif button28.collidepoint(mouse_pos):
+                        roulette_game.bet_position("28", account)
+                    elif button29.collidepoint(mouse_pos):
+                        roulette_game.bet_position("29", account)
+                    elif button30.collidepoint(mouse_pos):
+                        roulette_game.bet_position("30", account)
+                    elif button31.collidepoint(mouse_pos):
+                        roulette_game.bet_position("31", account)
+                    elif button32.collidepoint(mouse_pos):
+                        roulette_game.bet_position("32", account)
+                    elif button33.collidepoint(mouse_pos):
+                        roulette_game.bet_position("33", account)
+                    elif button34.collidepoint(mouse_pos):
+                        roulette_game.bet_position("34", account)
+                    elif button35.collidepoint(mouse_pos):
+                        roulette_game.bet_position("35", account)
+                    elif button36.collidepoint(mouse_pos):
+                        roulette_game.bet_position("36", account)
+                    elif first12.collidepoint(mouse_pos):
+                        roulette_game.bet_position("first 12", account)
+                    elif second12.collidepoint(mouse_pos):
+                        roulette_game.bet_position("second 12", account)
+                    elif third12.collidepoint(mouse_pos):
+                        roulette_game.bet_position("third 12", account)
+                    elif button_1to18.collidepoint(mouse_pos):
+                        roulette_game.bet_position("1-18", account)
+                    elif even.collidepoint(mouse_pos):
+                        roulette_game.bet_position("even", account)
+                    elif red.collidepoint(mouse_pos):
+                        roulette_game.bet_position("red", account)
+                    elif black.collidepoint(mouse_pos):
+                        roulette_game.bet_position("black", account)
+                    elif odd.collidepoint(mouse_pos):
+                        roulette_game.bet_position("odd", account)
+                    elif button_19to36.collidepoint(mouse_pos):
+                        roulette_game.bet_position("19-36", account)
+                    elif top_column_bet.collidepoint(mouse_pos):
+                        roulette_game.bet_position("top 2-1", account)
+                    elif middle_column_bet.collidepoint(mouse_pos):
+                        roulette_game.bet_position("mid 2-1", account)
+                    elif bottom_column_bet.collidepoint(mouse_pos):
+                        roulette_game.bet_position("bot 2-1", account)
+
+
 
 
             # Blackjack screen events
             if current_screen == 3:
-                if back_button.collidepoint(mouse_pos):
-                    current_screen = 0
+                pass
 
             # Account screen events
             if current_screen == 4:
@@ -115,8 +364,6 @@ while running:
                     account.add_fifty()
                 elif blue_button3.collidepoint(mouse_pos):
                     account.add_hundred()
-                elif back_button.collidepoint(mouse_pos):
-                    current_screen = 0
 
         # types and backspaces in the bet amount rectangle
         if current_screen == 1:
@@ -164,6 +411,7 @@ while running:
 
     # Slots screen
     elif current_screen == 1:
+        screen.fill(GREEN)
         # Slots title at top of screen
         new_message = font.render("Slots", True, BLACK)
         screen.blit(new_message, (350, 0))  # Position the new message
@@ -219,128 +467,6 @@ while running:
         # Account display / button
         pygame.draw.rect(screen, BLUE, balance_button)
         screen.blit(balance_button_text, (balance_button.x + 30, balance_button.y + 10))
-
-        button_width, button_height = 50, 50
-        column_bet_width, column_bet_height = 100, 50
-        three12_width, three12_height = 200, 50
-        other_bets_width, other_bets_height = 100, 50
-        first_row_y = 350
-        second_row_y = 400
-        third_row_y = 450
-
-        first12 = pygame.Rect(80, 500, three12_width, three12_height)
-        second12 = pygame.Rect(280, 500, three12_width, three12_height)
-        third12 = pygame.Rect(480, 500, three12_width, three12_height)
-        button_1to18 = pygame.Rect(80, 550, other_bets_width, button_height)
-        even = pygame.Rect(180, 550, other_bets_width, other_bets_height)
-        red = pygame.Rect(280, 550, other_bets_width, other_bets_height)
-        black = pygame.Rect(380, 550, other_bets_width, other_bets_height)
-        odd = pygame.Rect(480, 550, other_bets_width, other_bets_height)
-        button_19to36 = pygame.Rect(580, 550, other_bets_width, other_bets_height)
-
-        # Top Row
-        button0 = pygame.Rect(30, first_row_y, button_width, button_height * 3)
-        button3 = pygame.Rect(80, first_row_y, button_width, button_height)
-        button6 = pygame.Rect(130, first_row_y, button_width, button_height)
-        button9 = pygame.Rect(180, first_row_y, button_width, button_height)
-        button12 = pygame.Rect(230, first_row_y, button_width, button_height)
-        button15 = pygame.Rect(280, first_row_y, button_width, button_height)
-        button18 = pygame.Rect(330, first_row_y, button_width, button_height)
-        button21 = pygame.Rect(380, first_row_y, button_width, button_height)
-        button24 = pygame.Rect(430, first_row_y, button_width, button_height)
-        button27 = pygame.Rect(480, first_row_y, button_width, button_height)
-        button30 = pygame.Rect(530, first_row_y, button_width, button_height)
-        button33 = pygame.Rect(580, first_row_y, button_width, button_height)
-        button36 = pygame.Rect(630, first_row_y, button_width, button_height)
-        top_column_bet = pygame.Rect(680, first_row_y, column_bet_width, column_bet_height)
-
-        # Middle Row
-        button2 = pygame.Rect(80, second_row_y, button_width, button_height)
-        button5 = pygame.Rect(130, second_row_y, button_width, button_height)
-        button8 = pygame.Rect(180, second_row_y, button_width, button_height)
-        button11 = pygame.Rect(230, second_row_y, button_width, button_height)
-        button14 = pygame.Rect(280, second_row_y, button_width, button_height)
-        button17 = pygame.Rect(330, second_row_y, button_width, button_height)
-        button20 = pygame.Rect(380, second_row_y, button_width, button_height)
-        button23 = pygame.Rect(430, second_row_y, button_width, button_height)
-        button26 = pygame.Rect(480, second_row_y, button_width, button_height)
-        button29 = pygame.Rect(530, second_row_y, button_width, button_height)
-        button32 = pygame.Rect(580, second_row_y, button_width, button_height)
-        button35 = pygame.Rect(630, second_row_y, button_width, button_height)
-        middle_column_bet = pygame.Rect(680, second_row_y, column_bet_width, column_bet_height)
-
-        # Bottom Row
-        button1 = pygame.Rect(80, third_row_y, button_width, button_height)
-        button4 = pygame.Rect(130, third_row_y, button_width, button_height)
-        button7 = pygame.Rect(180, third_row_y, button_width, button_height)
-        button10 = pygame.Rect(230, third_row_y, button_width, button_height)
-        button13 = pygame.Rect(280, third_row_y, button_width, button_height)
-        button16 = pygame.Rect(330, third_row_y, button_width, button_height)
-        button19 = pygame.Rect(380, third_row_y, button_width, button_height)
-        button22 = pygame.Rect(430, third_row_y, button_width, button_height)
-        button25 = pygame.Rect(480, third_row_y, button_width, button_height)
-        button28 = pygame.Rect(530, third_row_y, button_width, button_height)
-        button31 = pygame.Rect(580, third_row_y, button_width, button_height)
-        button34 = pygame.Rect(630, third_row_y, button_width, button_height)
-        bottom_column_bet = pygame.Rect(680, third_row_y, column_bet_width, column_bet_height)
-
-        # Puts labels on button
-        # Out of Board Bets
-        first12_text = font.render("First 12", True, WHITE)
-        second12_text = font.render("Second 12", True, WHITE)
-        third12_text = font.render("Third 12", True, WHITE)
-        button_1to18_text = small_font.render("1 to 18", True, WHITE)
-        button_19to36_text = small_font.render("19 to 36", True, WHITE)
-        even_text = font.render("Even", True, WHITE)
-        odd_text = font.render("Odd", True, WHITE)
-        red_text = font.render("Red", True, WHITE)
-        black_text = font.render("Black", True, WHITE)
-
-        # Top Row
-        button0_text = font.render("0", True, BLACK)
-        button3_text = font.render("3", True, WHITE)
-        button6_text = font.render("6", True, WHITE)
-        button9_text = font.render("9", True, WHITE)
-        button12_text = font.render("12", True, WHITE)
-        button15_text = font.render("15", True, WHITE)
-        button18_text = font.render("18", True, WHITE)
-        button21_text = font.render("21", True, WHITE)
-        button24_text = font.render("24", True, WHITE)
-        button27_text = font.render("27", True, WHITE)
-        button30_text = font.render("30", True, WHITE)
-        button33_text = font.render("33", True, WHITE)
-        button36_text = font.render("36", True, WHITE)
-        top_column_text = small_font.render("2 for 1", True, WHITE)
-
-        # Middle Row
-        button2_text = font.render("2", True, WHITE)
-        button5_text = font.render("5", True, WHITE)
-        button8_text = font.render("8", True, WHITE)
-        button11_text = font.render("11", True, WHITE)
-        button14_text = font.render("14", True, WHITE)
-        button17_text = font.render("17", True, WHITE)
-        button20_text = font.render("20", True, WHITE)
-        button23_text = font.render("23", True, WHITE)
-        button26_text = font.render("26", True, WHITE)
-        button29_text = font.render("29", True, WHITE)
-        button32_text = font.render("32", True, WHITE)
-        button35_text = font.render("35", True, WHITE)
-        middle_column_text = small_font.render("2 for 1", True, WHITE)
-
-        # Bottom Row
-        button1_text = font.render("1", True, WHITE)
-        button4_text = font.render("4", True, WHITE)
-        button7_text = font.render("7", True, WHITE)
-        button10_text = font.render("10", True, WHITE)
-        button13_text = font.render("13", True, WHITE)
-        button16_text = font.render("16", True, WHITE)
-        button19_text = font.render("19", True, WHITE)
-        button22_text = font.render("22", True, WHITE)
-        button25_text = font.render("25", True, WHITE)
-        button28_text = font.render("28", True, WHITE)
-        button31_text = font.render("31", True, WHITE)
-        button34_text = font.render("34", True, WHITE)
-        bottom_column_text = small_font.render("2 for 1", True, WHITE)
 
         # Creates buttons for Board
         # Off Board Bets
@@ -450,15 +576,32 @@ while running:
         screen.blit(button34_text, (button34.x + 7, button34.y + 15))
         screen.blit(bottom_column_text, (bottom_column_bet.x + 15, bottom_column_bet.y + 15))
 
-        pygame.display.flip()
+        pygame.draw.circle(screen, BLACK, (150, 150), 100)
 
-        # create_board(pygame, screen)
+        landing_number = random.randint(0, 37)
+
+        r_bet_x = 600
+        r_bet_y = 100
+        for bet in roulette_game.bets_text():
+            bets_text = font.render(bet, True, WHITE)
+            screen.blit(bets_text, (r_bet_x, r_bet_y))
+            r_bet_y += 50
+
 
     # Blackjack screen
     elif current_screen == 3:
+        card_width = 100
+        card_height = 156
+        dealer_card_x = 10
+        dealer_card_y = 140
+        player_card_x = 10
+        player_card_y = 350
+
+        # if game is None:
+        screen.fill(GREEN)
         # Blackjack title at top of screen
         new_message = font.render("Blackjack", True, BLACK)
-        screen.blit(new_message, (350, 0))  # Position the new message
+        screen.blit(new_message, (345, 5))  # Position the new message
 
         # Back button
         pygame.draw.rect(screen, BLUE, back_button)
@@ -467,6 +610,36 @@ while running:
         # Account display / button
         pygame.draw.rect(screen, BLUE, balance_button)
         screen.blit(balance_button_text, (balance_button.x + 30, balance_button.y + 10))
+
+        # Dealer title and back of cards
+        dealer_title = font.render("Dealer", True, BLACK)
+        screen.blit(dealer_title, (120, 100))
+        pygame.draw.rect(screen, RED, (dealer_card_x, dealer_card_y, card_width, card_height))
+        # pygame.draw.rect(screen, RED, (dealer_card_x + 110, dealer_card_y, card_width, card_height))
+
+        # Your title and back of cards
+        You_title = font.render("You", True, BLACK)
+        screen.blit(You_title, (120, 310))
+        pygame.draw.rect(screen, RED, (player_card_x, player_card_y, card_width, card_height))
+        pygame.draw.rect(screen, RED, (player_card_x + 110, player_card_y, card_width, card_height))
+
+        # Makes the three betting buttons
+        pygame.draw.rect(screen, WHITE, bj_small_bet)
+        pygame.draw.rect(screen, WHITE, bj_medium_bet)
+        pygame.draw.rect(screen, WHITE, bj_large_bet)
+        pygame.draw.rect(screen, WHITE, bj_stand)
+        pygame.draw.rect(screen, WHITE, bj_hit)
+        pygame.draw.rect(screen, WHITE, bj_double)
+        screen.blit(small_bet_text, (bj_small_bet.x + 10, bj_small_bet.y + 10))
+        screen.blit(medium_bet_text, (bj_medium_bet.x + 8, bj_medium_bet.y + 10))
+        screen.blit(large_bet_text, (bj_large_bet.x + 8, bj_large_bet.y + 10))
+        screen.blit(stand_text, (bj_stand.x + 30, bj_stand.y + 10))
+        screen.blit(hit_text, (bj_hit.x + 30, bj_hit.y + 10))
+        screen.blit(double_text, (bj_double.x + 30, bj_double.y + 10))
+
+
+
+
 
     # Account screen
     elif current_screen == 4:
