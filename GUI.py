@@ -4,11 +4,13 @@ import random
 import time
 from account import Account
 from Roulette import Roulette
-
+from Slots import Slots
 # Initialize Pygame
 pygame.init()
 
+
 account = Account()
+slots = Slots()
 
 # Set up the window dimensions
 width, height = 800, 600
@@ -220,6 +222,107 @@ double_text = font.render("Double", True, BLACK)
 roulette_bet_position = None
 
 current_screen = 0
+
+'''
+Create spin function for slot game
+'''
+def spin():
+    slots.player_won = False
+    if not slots.spinning:
+        slots.spinning = True
+    symbols = ['1', '2', '3', '4', '5', '7']
+    all_outcomes = []
+
+    for _ in range(25):
+        temp_symbols = [random.choice(symbols) for _ in range(5)]
+        pygame.draw.rect(screen, WHITE, slot1)
+        pygame.draw.rect(screen, WHITE, slot2)
+        pygame.draw.rect(screen, WHITE, slot3)
+        pygame.draw.rect(screen, WHITE, slot4)
+        pygame.draw.rect(screen, WHITE, slot5)
+
+        # Redraw the black borders around the slot areas
+        pygame.draw.rect(screen, BLACK, slot1, 4)
+        pygame.draw.rect(screen, BLACK, slot2, 4)
+        pygame.draw.rect(screen, BLACK, slot3, 4)
+        pygame.draw.rect(screen, BLACK, slot4, 4)
+        pygame.draw.rect(screen, BLACK, slot5, 4)
+
+        # Render the new symbols
+        temp_symbol1 = title_font.render(temp_symbols[0], True, BLACK)
+        temp_symbol2 = title_font.render(temp_symbols[1], True, BLACK)
+        temp_symbol3 = title_font.render(temp_symbols[2], True, BLACK)
+        temp_symbol4 = title_font.render(temp_symbols[3], True, BLACK)
+        temp_symbol5 = title_font.render(temp_symbols[4], True, BLACK)
+
+        # Display the symbols inside the respective slots
+        screen.blit(temp_symbol1, (slot1.x + 30, slot1.y + 80))
+        screen.blit(temp_symbol2, (slot2.x + 30, slot2.y + 80))
+        screen.blit(temp_symbol3, (slot3.x + 30, slot3.y + 80))
+        screen.blit(temp_symbol4, (slot4.x + 30, slot4.y + 80))
+        screen.blit(temp_symbol5, (slot5.x + 30, slot5.y + 80))
+        all_outcomes.append(temp_symbols)
+        pygame.display.update()
+        pygame.time.delay(150)
+        print(f'all outcomes: {all_outcomes}')
+
+    slots.final_symbols = all_outcomes[-1]
+    print(f'final symbols: {slots.final_symbols}')
+
+    # Check for a win and store the winning indices
+    slots.win_slots = slots.check_win(slots.final_symbols)
+    if slots.win_slots:
+        player_won = True
+        print('You win!')
+        print(f'Winning indices: {slots.win_slots}')  # Print the indices of winning symbols
+    else:
+        player_won = False
+        print('No win.')
+
+    pygame.display.update()
+    slots.final_symbols_displayed = True
+    slots.spinning = False
+
+'''
+Create function to display symbols of slot game
+'''
+
+def display_final_symbols():
+    winning_color = (255, 215, 0)  # Gold color for winning symbols
+    symbol_color = BLACK  # Default color for non-winning symbols
+
+    if slots.final_symbols_displayed:
+        # Loop through each symbol and display it
+        for i in range(5):
+            # If the current index is a winning index, use the winning color
+            if i in slots.win_slots:
+                color = winning_color
+            else:
+                color = symbol_color
+
+            # Render the symbol with the appropriate color
+            final_symbol = title_font.render(slots.final_symbols[i], True, color)
+
+            # Display the symbol in its respective slot
+            if i == 0:
+                screen.blit(final_symbol, (slot1.x + 30, slot1.y + 80))
+            elif i == 1:
+                screen.blit(final_symbol, (slot2.x + 30, slot2.y + 80))
+            elif i == 2:
+                screen.blit(final_symbol, (slot3.x + 30, slot3.y + 80))
+            elif i == 3:
+                screen.blit(final_symbol, (slot4.x + 30, slot4.y + 80))
+            elif i == 4:
+                screen.blit(final_symbol, (slot5.x + 30, slot5.y + 80))
+
+        if slots.player_won:
+            win_message = title_font.render("You Win!", True, winning_color)
+            screen.blit(win_message, (250, 50))  # Adjust position as needed
+            pygame.display.update()
+
+
+
+
 # Main loop
 running = True
 while running:
@@ -240,12 +343,20 @@ while running:
             if balance_button.collidepoint(mouse_pos):
                 current_screen = 4
 
+            '''
             # Slot machine screen events
             if current_screen == 1:
                 if spin_button.collidepoint(mouse_pos):
                     # makes sure bet is not subtracted from balance if bet is above 20
                     if 0 < int(bet_text) <= 20:
                         account.place_bet(int(bet_text))
+            '''
+            if current_screen == 1:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        bet_text = bet_text[:-1]
+                    elif event.unicode.isdigit() and len(bet_text) < 2:
+                        bet_text += event.unicode
 
             # Roulette screen events
             if current_screen == 2:
@@ -412,6 +523,7 @@ while running:
     # Slots screen
     elif current_screen == 1:
         screen.fill(GREEN)
+
         # Slots title at top of screen
         new_message = font.render("Slots", True, BLACK)
         screen.blit(new_message, (350, 0))  # Position the new message
@@ -438,20 +550,60 @@ while running:
         spin_button_text = font.render('SPIN', True, WHITE)
         screen.blit(spin_button_text, (spin_button.x + 10, spin_button.y + 10))
 
+        slot1 = pygame.Rect(100, 160, 100, 200)
+        slot2 = pygame.Rect(225, 160, 100, 200)
+        slot3 = pygame.Rect(350, 160, 100, 200)
+        slot4 = pygame.Rect(475, 160, 100, 200)
+        slot5 = pygame.Rect(600, 160, 100, 200)
+
+        # Draw the rectangles
+
+        pygame.draw.rect(screen, WHITE, slot1)
+        pygame.draw.rect(screen, WHITE, slot2)
+        pygame.draw.rect(screen, WHITE, slot3)
+        pygame.draw.rect(screen, WHITE, slot4)
+        pygame.draw.rect(screen, WHITE, slot5)
+
+        # Border the rectangles with black
+
+        pygame.draw.rect(screen, BLACK, slot1, 4)
+        pygame.draw.rect(screen, BLACK, slot2, 4)
+        pygame.draw.rect(screen, BLACK, slot3, 4)
+        pygame.draw.rect(screen, BLACK, slot4, 4)
+        pygame.draw.rect(screen, BLACK, slot5, 4)
+
+        display_final_symbols()
+
         # make checks for bet amounts
+
         if spin_button.collidepoint(mouse_pos) and mouse_pressed[0]:
-
-            if int(bet_text) > 20 or int(bet_text) < 1:
-                invalid_bet_message = 'Bet must be between $1 and $20!'
-            elif int(bet_text) > account.balance:
-                invalid_bet_message = account.invalid_bet_message
-            else:
+            if len(bet_text) >= 1 and not slots.spinning:
                 invalid_bet_message = ''
+                # makes sure bet is not subtracted from balance if bet is above 20
+                if 0 < int(bet_text) <= 20:
+                    if int(bet_text) <= account.balance:
+                        invalid_bet_message = ''
+                        account.place_bet(int(bet_text))
+                        if not slots.spinning:
+                            spin()
+                        if slots.spinning:
+                            slots.spinning = True
+                        display_final_symbols()
+                        # pygame.display.update()
+                    else:
+                        invalid_bet_message = 'You cannot bet more than you have!'
 
-        # display message if bet is out of range or more than the total balance
+                else:
+                    invalid_bet_message = 'Bet must be between $1 and $20!'
+            else:
+                invalid_bet_message = 'Please make a bet before you can spin!'
+
         if invalid_bet_message:
             message_surface = small_font.render(invalid_bet_message, True, BLACK)
             screen.blit(message_surface, message_rect)
+
+
+
 
     # Roulette screen
     elif current_screen == 2:
