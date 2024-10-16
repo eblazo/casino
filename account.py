@@ -8,17 +8,11 @@ class Account:
     def balance(self):
         return self._balance
 
-    def add_twenty(self):
-        self._balance += 20
-
-    def add_fifty(self):
-        self._balance += 50
-
-    def add_hundred(self):
-        self._balance += 100
-
     def roulette_bet(self):
-        self._balance -=5
+        self._balance -= 5
+
+    def deposit(self, amount):
+        self._balance += amount
 
     def win(self, amount):
         self._balance += amount
