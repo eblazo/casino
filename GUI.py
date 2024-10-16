@@ -272,11 +272,12 @@ def spin():
     # Check for a win and store the winning indices
     slots.win_slots = slots.check_win(slots.final_symbols)
     if slots.win_slots:
-        player_won = True
+        slots.player_won = True
         print('You win!')
         print(f'Winning indices: {slots.win_slots}')  # Print the indices of winning symbols
+        account.add_bet_amount(5 * int(bet_text))
     else:
-        player_won = False
+        slots.player_won = False
         print('No win.')
 
     pygame.display.update()
