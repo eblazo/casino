@@ -1,35 +1,134 @@
 import random
 import time
 import os
+import math
 
-deck = ["Ah", "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h", "Jh", "Qh", "Kh",
-        "Ad", "2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "10d", "Jd", "Qd", "Kd",
-        "Ac", "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "Jc", "Qc", "Kc",
-        "As", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "Js", "Qs", "Ks"]
-card_values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10,
-               1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10,
-               1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10,
-               1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-dealer_hand = []
-sum_dealer_hand = 0
-player_hand = []
-sum_player_hand = 0
-used_cards = []
-for i in range(2):
-    player_hand.append(random.choice(deck))
-    used_cards.append(player_hand[i])
-    dealer_hand.append(random.choice(deck))
-    used_cards.append(dealer_hand[i])
+SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+VALUES = {
+    '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+    'J': 10, 'Q': 10, 'K': 10, 'A': 11}
 
-print(f'{"Dealer ->"}{"|"}{dealer_hand[0]}{"|"}{dealer_hand[1]}{"|"}')
-print("")
-print("")
-print(f'{"Player ->"}{"|"}{player_hand[0]}{"|"}{player_hand[1]}{"|"}')
-print("1: Stand  2: Hit  3: Double Down")
-choice = int(input())
-if choice != 1 or choice != 2 or choice != 3:
-    print("Invalid input. Please try again")
-    choice = int(input())
-elif choice == 1:
-    while sum(dealer_hand) < 17:
-        dealer_hand.append(random.choice(deck))
+
+class Card:
+    def __init__(self, suit, rank):
+        self.suit = suit
+        self.rank = rank
+
+    def value(self):
+        return VALUES[self.rank]
+
+    def __str__(self):
+        return self.rank + self.suit[0]
+
+
+class Deck:
+    def __init__(self):
+        self.cards = []
+        for suit in SUITS:
+            for rank in RANKS:
+                self.cards.append(Card(suit, rank))
+        self.shuffle()
+
+    def shuffle(self):
+        random.shuffle(self.cards)
+
+    def deal_single_card(self):
+        return self.cards.pop()
+
+
+class Hand:
+    def __init__(self, owner):
+        self.cards = []
+        self.owner = owner
+
+    def add_card(self, card):
+        self.cards.append(card)
+
+    def value(self):
+        value = 0
+        for card in self.cards:
+            value += card.value()
+        aces = 0
+        for card in self.cards:
+            if card.rank == 'A':
+                aces += 1
+        while value > 21 and aces > 0:
+            value -= 10
+            aces -= 1
+        return value
+
+    def is_bust(self):
+        return self.value() > 21
+
+    def is_Blackjack(self):
+        return self.value() == 21
+
+    def return_cards(self):
+        self.cards = []
+
+
+class Blackjack:
+    def __init__(self):
+        self.deck = Deck()
+        self.player_hand = Hand('Player')
+        self.dealer_hand = Hand('Dealer')
+        self.game_over = False
+        self.winner = None
+
+    def new_hand(self):
+        # resets all values for a new hand
+        self.deck = Deck()
+        self.player_hand.return_cards()
+        self.dealer_hand.return_cards()
+        self.game_over = False
+        self.winner = None
+
+        # Deals two cards to both player and dealer
+        for i in range(2):
+            self.player_hand.add_card(self.deck.deal_single_card())
+            self.dealer_hand.add_card(self.deck.deal_single_card())
+
+        # Checks if either the player or the dealer got a blackjack
+        if self.player_hand.is_Blackjack():
+            self.winner = "Player"
+            self.game_over = True
+        elif self.dealer_hand.is_Blackjack():
+            self.winner = "Dealer"
+            self.game_over = True
+
+    def hit(self):
+        self.player_hand.add_card(self.deck.deal_single_card())
+        if self.player_hand.is_bust():
+            self.winner = "Dealer"
+            self.game_over = True
+        elif self.player_hand.is_Blackjack():
+            self.winner = "Player"
+            self.game_over = True
+
+    def stand(self):
+        self.dealer_turn()
+        self.find_winner()
+
+    def dealer_turn(self):
+        while self.dealer_hand.value() < 17:
+            self.dealer_hand.add_card(self.deck.deal_single_card())
+
+    def find_winner(self):
+        player_value = self.player_hand.value()
+        dealer_value = self.player_hand.value()
+        if self.dealer_hand.is_bust():
+            self.winner = "Player"
+        elif dealer_value > player_value:
+            self.winner = "Dealer"
+        elif player_value > dealer_value:
+            self.winner = "Player"
+        else:
+            self.winner = "Tie"
+        self.game_over = True
+
+    def dealer_first_card(self):
+        if len(self.dealer_hand.cards) == 0:
+            return
+        return self.dealer_hand.cards[0]
+
