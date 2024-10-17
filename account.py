@@ -14,9 +14,6 @@ class Account:
     def deposit(self, amount):
         self._balance += amount
 
-    def win(self, amount):
-        self._balance += amount
-
     def place_bet(self, bet_amount):
         self.invalid_bet_message = ''
         if bet_amount <= self._balance:
