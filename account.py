@@ -8,7 +8,8 @@ class Account:
         return self._balance
 
     def roulette_bet(self):
-        self._balance -= 5
+        if self._balance >= 5:
+            self._balance -= 5
 
     def deposit(self, amount):
         self._balance += amount
