@@ -2,7 +2,6 @@ class Account:
 
     def __init__(self):
         self._balance = 100
-        self.max_balance = 10000
 
     @property
     def balance(self):
