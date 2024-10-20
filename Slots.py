@@ -7,10 +7,10 @@ class Slots:
         self.win_slots = []
         self.player_won = False
 
-    def check_win(self, final_symbols):
+    def check_win(self):
         winning_indices = []
         for i in range(3):  # Check for three consecutive identical symbols
-            if final_symbols[i] == final_symbols[i + 1] == final_symbols[i + 2]:
+            if self.final_symbols[i] == self.final_symbols[i + 1] == self.final_symbols[i + 2]:
                 winning_indices.extend([i, i + 1, i + 2])
                 return winning_indices
         return []
