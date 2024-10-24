@@ -1,112 +1,194 @@
 from random import shuffle
 from card import Card
 
-shoe = []
-player_cards = []
-dealer_cards = []
-p = 'player'
-d = 'dealer'
+
+class Player:
+    def __init__(self, table):
+        self.__cards = []
+        self.__score = 0
+        self.__table = table
+
+    @property
+    def score(self) -> int:
+        return self.__score
+
+    def play(self):
+        print('player turn')
+        while True:
+            print(f"player: {self.score}")
+            if self.score >= 21:
+                break
+            self.__table.check_bust()
+            decision = input('h or s?')
+            if decision == 's':
+                break
+            elif decision == 'h':
+                self.give_card(self.__table.shoe.pop())
+
+            else:
+                print('needs to be h or s')
+
+    def give_card(self, card):
+        self.__cards.append(card)
+        self.__score += card.number
+
+    def clear_cards(self):
+        cards = self.__cards
+        self.__cards = []
+        self.__score = 0
+        return cards
 
 
-def reshuffle():
-    for deck in range(0, 5):
-        for suit in range(1, 5):
-            for number in range(1, 14):
-                shoe.append(Card(number, suit))
-    shuffle(shoe)
+class Dealer:
+    def __init__(self, table):
+        self.__cards = []
+        self.__score = 0
+        self.__table = table
+
+    @property
+    def score(self):
+        return self.__score
+
+    def play(self):
+        print('dealer turn')
+
+        self.__cards[1].face_up = True
+        self.__score += self.__cards[1].number
+
+        while (self.score < 17) and (self.score < self.__table.player_score):
+            print(f"dealer: {self.score}")
+            self.give_card(self.__table.shoe.pop())
+            self.__table.check_bust()
+        print(f"dealer: {self.score}")
+
+    def give_card(self, card):
+        self.__cards.append(card)
+        if card.face_up:
+            self.__score += card.number
+
+    def clear_cards(self):
+        cards = self.__cards
+        self.__cards = []
+        self.__score = 0
+        return cards
 
 
-def deal():
-    player_cards.append(shoe.pop())
-    player_cards.append(shoe.pop())
-    dealer_cards.append(shoe.pop())
-    dealer_cards.append(shoe.pop())
-    dealer_cards[0].face_up = False
+class Table:
+    def __init__(self, money):
+        self.shoe = []
+        # 0 is they lost, 1 is they won, 2 is a tie, -1 is currently undecided
+        self.__player_win = -1
+        self.__player = Player(self)
+        self.__dealer = Dealer(self)
+        self.__money = money
+        self.__wager = int()
+
+    @property
+    def player_score(self) -> int:
+        return self.__player.score
+
+    @property
+    def player_win(self) -> int:
+        return self.__player_win
+
+    @player_win.setter
+    def player_win(self, num_code: int):
+        if not isinstance(num_code, int):
+            raise TypeError('The player_win codes are integers')
+        if not num_code in [-1, 0, 1, 2]:
+            raise ValueError('The player_win codes are from -1 to 2')
+
+        self.__player_win = num_code
+
+    @property
+    def money(self):
+        return self.__money
+
+    @money.setter
+    def money(self, amount):
+        if not isinstance(amount, int):
+            raise TypeError('Money must be an integer')
+        self.__money = amount
+
+    @property
+    def wager(self):
+        return self.__wager
+
+    @wager.setter
+    def wager(self, amount):
+        if not isinstance(amount, int):
+            raise TypeError('Wager must be an integer')
+        if amount <= 0:
+            raise ValueError('Wager must be greater than 0')
+        self.__wager = amount
+
+    def reshuffle(self):
+        for deck in range(0, 5):
+            for suit in range(1, 5):
+                for number in range(1, 14):
+                    self.shoe.append(Card(number, suit))
+        shuffle(self.shoe)
+
+    def check_bust(self):
+        if self.__dealer.score > 21 and self.__player.score > 21:
+            self.player_win = 2
+        elif self.__player.score > 21:
+            self.player_win = 0
+        elif self.__dealer.score > 21:
+            self.player_win = 1
+
+        if self.player_win != -1:
+            self.distribute_money()
+
+    def distribute_money(self):
+        if self.player_win == 0:
+            self.__money -= self.wager
+        elif self.player_win == 1:
+            self.__money += self.wager
+
+        print(self.money)
+
+    def reset(self):
+        self.__player.clear_cards()
+        self.__dealer.clear_cards()
+        self.player_win = -1
+        self.reshuffle()
+
+        # Gives the player and dealer two cards. One of the dealers will be face down.
+        self.__player.give_card(self.shoe.pop())
+        self.__player.give_card(self.shoe.pop())
+        self.__dealer.give_card(self.shoe.pop())
+        face_down_card = self.shoe.pop()
+        face_down_card.face_up = False
+        self.__dealer.give_card(face_down_card)
+
+    def play_game(self):
+        while True:
+            self.reset()
+            self.wager = int(input('wager?'))
+            self.__player.play()
+
+            if self.player_win == -1:
+                self.__dealer.play()
+
+            if self.player_win == -1:
+                if self.__player.score > self.__dealer.score:
+                    self.player_win = 1
+                elif self.__player.score < self.__dealer.score:
+                    self.player_win = 0
+                else:
+                    self.player_win = 2
+
+                self.distribute_money()
+
+            again = input('play again y/n')
+            if again == 'y':
+                self.play_game()
+            elif again == 'n':
+                break
+            else:
+                print('y/n please')
 
 
-def show_cards():
-    print('your cards')
-    for card in player_cards:
-        print(card.named())
-
-    print('dealer cards')
-    for card in dealer_cards:
-        print(card.named())
-
-
-#Add aces being worth 10 or 1 eventually
-def check_score(competitor):
-    score = 0
-
-    if competitor == p:
-        cards = player_cards
-    elif competitor == d:
-        cards = dealer_cards
-    else:
-        raise Exception('Arg must be \'player\' or \'dealer\'')
-
-    for card in cards:
-        score += card.number
-
-    return score
-
-
-def hit(player):
-    if player == p:
-        player_cards.append(shoe.pop())
-    elif player == d:
-        dealer_cards.append(shoe.pop())
-    else:
-        raise ValueError('An argument that was not "p" or "d" was passed for hit()')
-
-
-
-def player_turn():
-    print('player turn')
-    decision = 'h'
-    while True:
-        decision = input('h or s?')
-        if decision == 's':
-            break
-        if decision == 'h':
-            hit(p)
-            print(f"player: {check_score(p)}")
-            check_bust()
-
-
-def dealer_turn():
-    print('dealer turn')
-    while check_score(d) < 17:
-        hit(d)
-        print(f"dealer: {check_score(d)}")
-        check_bust()
-
-
-def check_bust():
-    if check_score(p) > 21:
-        exit(f'{p} bust!')
-    if check_score(d) > 21:
-        exit(f'{d} bust!')
-
-
-
-
-# Getting the hand set up
-winner = str()
-reshuffle()
-deal()
-show_cards()
-print(f"Player Score:{check_score(p)}")
-print(f"Dealer Score:{check_score(d)}")
-print()
-check_bust()
-
-player_turn()
-dealer_turn()
-
-if check_score(p) > check_score(d):
-    exit(f'{p} wins')
-elif check_score(p) < check_score(d):
-    exit(f'{d} wins')
-else:
-    exit('standoff')
+t = Table(100)
+t.play_game()
