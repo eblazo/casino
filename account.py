@@ -4,7 +4,7 @@ class Account:
 
     Attributes:
         _balance (int): The current balance of the account, initialized to 100.
-        invalid_bet_message (str): Message indicating if a bet is invalid.
+        _invalid_bet_message (str): Message indicating if a bet is invalid.
 
     Methods:
         balance: Property that returns the current balance of the account.
@@ -21,7 +21,7 @@ class Account:
         Initializes a new Account instance with a balance of 100 and an empty invalid bet message.
         """
         self._balance = 100
-        self.invalid_bet_message = ''
+        self._invalid_bet_message = ''
 
     @property
     def balance(self):
@@ -32,6 +32,16 @@ class Account:
             int: The current balance.
         """
         return self._balance
+
+    @property
+    def invalid_bet_message(self):
+        """
+        Tells the user that a bet is invalid if it is more than their account balance.
+
+        Returns:
+            str: A message stating that the bet is invalid.
+                """
+        return self._invalid_bet_message
 
     def roulette_bet(self):
         """
@@ -60,10 +70,10 @@ class Account:
             invalid_bet_message (str): A message indicating if the bet is invalid.
         """
         if bet_amount <= self._balance:
-            self.invalid_bet_message = ''
+            self._invalid_bet_message = ''
             self._balance -= bet_amount
         else:
-            self.invalid_bet_message = 'You cannot bet more than you have!'
+            self._invalid_bet_message = 'You cannot bet more than you have!'
 
     def __str__(self):
         """
