@@ -122,6 +122,11 @@ _message_rect = pygame.Rect(200, 450, 400, 50)
 
 
 def __spin():
+    balance_button = pygame.Rect(680, 0, 120, 40)
+    pygame.draw.rect(screen, BLUE, balance_button)
+    balance_button_text = small_font.render(str(account), True, WHITE)
+    screen.blit(balance_button_text, (balance_button.x + 30, balance_button.y + 10))
+
     slots.player_won = False
     if not slots.spinning:
         slots.spinning = True
@@ -165,13 +170,14 @@ def __spin():
     # print(f'final symbols: {slots.final_symbols}')
 
     # Check for a win and store the winning indices
-    slots.win_slots = slots.check_win()
+    slots.win_slots = slots.check_win(slots.final_symbols)
     if slots.win_slots:
-        _player_won = True
+        slots.player_won = True
         print('You win!')
         print(f'Winning indices: {slots.win_slots}')  # Print the indices of winning symbols
+        account.deposit(5 * int(_BET_TEXT))
     else:
-        _player_won = False
+        slots.player_won = False
         print('No win.')
 
     pygame.display.update()
