@@ -36,6 +36,7 @@ import pygame
 from account import Account
 from Roulette import Roulette
 from Slots import Slots
+from BlackJack import Table
 
 # Initialize Pygame
 pygame.init()
@@ -465,7 +466,6 @@ def __draw_roulette_table_buttons(pygame, screen):
 
 
 def __draw_roulette_screen(pygame, screen):
-
     __draw_roulette_table_buttons(pygame, screen)
 
     __draw_roulette_table_text(screen)
@@ -617,22 +617,74 @@ def __spin_wheel(pygame, screen, x, y):
 
 
 # Blackjack buttons
+blackjack = Table(account)
 # Rectangles for action buttons on the right side
-bj_small_bet = pygame.Rect(600, 330, 60, 50)
-bj_medium_bet = pygame.Rect(670, 330, 60, 50)
-bj_large_bet = pygame.Rect(740, 330, 60, 50)
+_bj_small_bet = pygame.Rect(600, 330, 60, 50)
+_bj_medium_bet = pygame.Rect(670, 330, 60, 50)
+_bj_large_bet = pygame.Rect(740, 330, 60, 50)
 
-bj_stand = pygame.Rect(600, 400, 200, 50)
-bj_hit = pygame.Rect(600, 470, 200, 50)
-bj_double = pygame.Rect(600, 540, 200, 50)
+_bj_stand = pygame.Rect(600, 400, 200, 50)
+_bj_hit = pygame.Rect(600, 470, 200, 50)
+_bj_double = pygame.Rect(600, 540, 200, 50)
 
 # Creates text for blackjack right side action buttons
-small_bet_text = small_font.render("$5", True, BLACK)
-medium_bet_text = small_font.render("$10", True, BLACK)
-large_bet_text = small_font.render("$25", True, BLACK)
-stand_text = font.render("Stand", True, BLACK)
-hit_text = font.render("Hit", True, BLACK)
-double_text = font.render("Double", True, BLACK)
+_small_bet_text = small_font.render("$5", True, BLACK)
+_medium_bet_text = small_font.render("$10", True, BLACK)
+_large_bet_text = small_font.render("$25", True, BLACK)
+_stand_text = font.render("Stand", True, BLACK)
+_hit_text = font.render("Hit", True, BLACK)
+_double_text = font.render("Double", True, BLACK)
+
+
+def __draw_blackjack_screen(pygame, screen):
+    # if game is None:
+    screen.fill(GREEN)
+    # Blackjack title at top of screen
+    __draw_screen_title("Blackjack")
+
+    # Back button
+    __draw_back_button(pygame, screen)
+
+    # Account display / button
+    __draw_balance_button(pygame, screen)
+
+    # Dealer title and back of cards
+    dealer_title = font.render("Dealer", True, BLACK)
+    screen.blit(dealer_title, (120, 100))
+
+    # Your title and back of cards
+    You_title = font.render("You", True, BLACK)
+    screen.blit(You_title, (120, 310))
+
+    # Makes the three betting buttons
+    pygame.draw.rect(screen, WHITE, _bj_small_bet)
+    pygame.draw.rect(screen, WHITE, _bj_medium_bet)
+    pygame.draw.rect(screen, WHITE, _bj_large_bet)
+
+    if blackjack.live_game:
+        if blackjack.wager == 5:
+            pygame.draw.rect(screen, RED, _bj_small_bet)
+            pygame.draw.rect(screen, WHITE, _bj_medium_bet)
+            pygame.draw.rect(screen, WHITE, _bj_large_bet)
+        elif blackjack.wager == 10:
+            pygame.draw.rect(screen, WHITE, _bj_small_bet)
+            pygame.draw.rect(screen, RED, _bj_medium_bet)
+            pygame.draw.rect(screen, WHITE, _bj_large_bet)
+        else:
+            pygame.draw.rect(screen, WHITE, _bj_small_bet)
+            pygame.draw.rect(screen, WHITE, _bj_medium_bet)
+            pygame.draw.rect(screen, RED, _bj_large_bet)
+
+    pygame.draw.rect(screen, WHITE, _bj_stand)
+    pygame.draw.rect(screen, WHITE, _bj_hit)
+    pygame.draw.rect(screen, WHITE, _bj_double)
+    screen.blit(_small_bet_text, (_bj_small_bet.x + 10, _bj_small_bet.y + 10))
+    screen.blit(_medium_bet_text, (_bj_medium_bet.x + 8, _bj_medium_bet.y + 10))
+    screen.blit(_large_bet_text, (_bj_large_bet.x + 8, _bj_large_bet.y + 10))
+    screen.blit(_stand_text, (_bj_stand.x + 30, _bj_stand.y + 10))
+    screen.blit(_hit_text, (_bj_hit.x + 30, _bj_hit.y + 10))
+    screen.blit(_double_text, (_bj_double.x + 30, _bj_double.y + 10))
+
 
 CURRENT_SCREEN = 0
 # Main loop
@@ -708,7 +760,21 @@ while RUNNING:
 
             # Blackjack screen events
             if CURRENT_SCREEN == 3:
-                pass
+                if _bj_small_bet.collidepoint(mouse_pos):
+                    blackjack.bet(5)
+                    blackjack.deal()
+                elif _bj_medium_bet.collidepoint(mouse_pos):
+                    blackjack.bet(10)
+                    blackjack.deal()
+                elif _bj_large_bet.collidepoint(mouse_pos):
+                    blackjack.bet(25)
+                    blackjack.deal()
+                elif _bj_stand.collidepoint(mouse_pos):
+                    blackjack.stand()
+                elif _bj_hit.collidepoint(mouse_pos):
+                    blackjack.hit()
+                elif _bj_double.collidepoint(mouse_pos):
+                    blackjack.double()
 
             # Account screen events
             if CURRENT_SCREEN == 4:
@@ -860,46 +926,66 @@ while RUNNING:
     elif CURRENT_SCREEN == 3:
         CARD_WIDTH = 100
         CARD_HEIGHT = 156
-        DEALER_CARD_X = 10
+        CARD_X = 10
         DEALER_CARD_Y = 140
-        PLAYER_CARD_X = 10
         PLAYER_CARD_Y = 350
 
-        # if game is None:
-        screen.fill(GREEN)
-        # Blackjack title at top of screen
-        __draw_screen_title("Blackjack")
+        __draw_blackjack_screen(pygame, screen)
 
-        # Back button
-        __draw_back_button(pygame, screen)
+        # Dealers cards
+        pygame.draw.rect(screen, RED, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+        pygame.draw.rect(screen, RED, (CARD_X + 110, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
 
-        # Account display / button
-        __draw_balance_button(pygame, screen)
+        # Your cards
+        pygame.draw.rect(screen, RED, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+        pygame.draw.rect(screen, RED, (CARD_X + 110, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
 
-        # Dealer title and back of cards
-        dealer_title = font.render("Dealer", True, BLACK)
-        screen.blit(dealer_title, (120, 100))
-        pygame.draw.rect(screen, RED, (DEALER_CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+        if blackjack.live_game:
+            __draw_blackjack_screen(pygame, screen)
 
-        # Your title and back of cards
-        You_title = font.render("You", True, BLACK)
-        screen.blit(You_title, (120, 310))
-        pygame.draw.rect(screen, RED, (PLAYER_CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-        pygame.draw.rect(screen, RED, (PLAYER_CARD_X + 110, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+            card = blackjack.dealer.hand.cards[0]
+            pygame.draw.rect(screen, WHITE, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+            card_text = small_font.render(str(card), True, BLACK)
+            screen.blit(card_text, (CARD_X + 10, DEALER_CARD_Y + 10))
 
-        # Makes the three betting buttons
-        pygame.draw.rect(screen, WHITE, bj_small_bet)
-        pygame.draw.rect(screen, WHITE, bj_medium_bet)
-        pygame.draw.rect(screen, WHITE, bj_large_bet)
-        pygame.draw.rect(screen, WHITE, bj_stand)
-        pygame.draw.rect(screen, WHITE, bj_hit)
-        pygame.draw.rect(screen, WHITE, bj_double)
-        screen.blit(small_bet_text, (bj_small_bet.x + 10, bj_small_bet.y + 10))
-        screen.blit(medium_bet_text, (bj_medium_bet.x + 8, bj_medium_bet.y + 10))
-        screen.blit(large_bet_text, (bj_large_bet.x + 8, bj_large_bet.y + 10))
-        screen.blit(stand_text, (bj_stand.x + 30, bj_stand.y + 10))
-        screen.blit(hit_text, (bj_hit.x + 30, bj_hit.y + 10))
-        screen.blit(double_text, (bj_double.x + 30, bj_double.y + 10))
+            pygame.draw.rect(screen, RED, (CARD_X + 110, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+
+            for card in blackjack.player.hand.cards:
+                pygame.draw.rect(screen, WHITE, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+                card_text = small_font.render(str(card), True, BLACK)
+                screen.blit(card_text, (CARD_X + 10, PLAYER_CARD_Y + 10))
+                CARD_X += 110
+
+            value_text = small_font.render("Value: " + str(blackjack.player.hand.value()), True, BLACK)
+            screen.blit(value_text, (120, 530))
+
+            CARD_X = 10
+            if blackjack.player_done:
+                __draw_blackjack_screen(pygame, screen)
+
+                for card in blackjack.dealer.hand.cards:
+                    pygame.draw.rect(screen, WHITE, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+                    card_text = small_font.render(str(card), True, BLACK)
+                    screen.blit(card_text, (CARD_X + 10, DEALER_CARD_Y + 10))
+                    CARD_X += 110
+
+                CARD_X = 10
+                for card in blackjack.player.hand.cards:
+                    pygame.draw.rect(screen, WHITE, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+                    card_text = small_font.render(str(card), True, BLACK)
+                    screen.blit(card_text, (CARD_X + 10, PLAYER_CARD_Y + 10))
+                    CARD_X += 110
+
+
+
+                blackjack.reset()
+
+            # for card in blackjack.player.hand.cards:
+            #     print("players cards")
+            #     print(str(card))
+
+
+
 
     # Account screen
     elif CURRENT_SCREEN == 4:

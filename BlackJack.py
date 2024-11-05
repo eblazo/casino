@@ -1,7 +1,5 @@
+from random import shuffle
 import random
-import time
-import os
-import math
 
 SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
@@ -38,9 +36,9 @@ class Deck:
 
 
 class Hand:
-    def __init__(self, owner):
+    def __init__(self):
         self.cards = []
-        self.owner = owner
+        # self.owner = owner
 
     def add_card(self, card):
         self.cards.append(card)
@@ -68,67 +66,114 @@ class Hand:
         self.cards = []
 
 
-class Blackjack:
+class Player:
     def __init__(self):
-        self.deck = Deck()
-        self.player_hand = Hand('Player')
-        self.dealer_hand = Hand('Dealer')
-        self.game_over = False
-        self.winner = None
+        self.__hand = Hand()
+        # self.__score = 0
+        # self.__table = table
 
-    def new_hand(self):
-        # resets all values for a new hand
-        self.deck = Deck()
-        self.player_hand.return_cards()
-        self.dealer_hand.return_cards()
-        self.game_over = False
-        self.winner = None
+    @property
+    def hand(self):
+        return self.__hand
 
-        # Deals two cards to both player and dealer
+    def score(self):
+        return self.__hand.value()
+
+    def cards(self):
+        return self.__hand.cards
+
+    def give_card(self, card):
+        self.__cards.append(card)
+        self.__score += card.number
+
+
+class Table:
+    def __init__(self, account):
+        # self.shoe = []
+        self.__deck = Deck()
+        # 0 is they lost, 1 is they won, 2 is a tie, -1 is currently undecided
+        self.__player_win = -1
+        self.__player = Player()
+        self.__dealer = Player()
+        self.__wager = 0
+        self.__account = account
+        self.__live_game = False
+        self.__player_done = False
+
+    @property
+    def player_win(self) -> int:
+        return self.__player_win
+
+    @property
+    def live_game(self):
+        return self.__live_game
+
+    @property
+    def player_done(self):
+        return self.__player_done
+
+    @property
+    def wager(self):
+        return self.__wager
+
+    @property
+    def player(self):
+        return self.__player
+
+    @property
+    def dealer(self):
+        return self.__dealer
+
+    @player_win.setter
+    def player_win(self, num_code: int):
+        if not isinstance(num_code, int):
+            raise TypeError('The player_win codes are integers')
+        if not num_code not in [-1, 0, 1, 2]:
+            raise ValueError('The player_win codes are from -1 to 2')
+
+        self.__player_win = num_code
+
+    def bet(self, amount):
+        self.__wager = amount
+        self.__live_game = True
+        self.__account.place_bet(self.__wager)
+
+    def deal(self):
         for i in range(2):
-            self.player_hand.add_card(self.deck.deal_single_card())
-            self.dealer_hand.add_card(self.deck.deal_single_card())
-
-        # Checks if either the player or the dealer got a blackjack
-        if self.player_hand.is_Blackjack():
-            self.winner = "Player"
-            self.game_over = True
-        elif self.dealer_hand.is_Blackjack():
-            self.winner = "Dealer"
-            self.game_over = True
-
-    def hit(self):
-        self.player_hand.add_card(self.deck.deal_single_card())
-        if self.player_hand.is_bust():
-            self.winner = "Dealer"
-            self.game_over = True
-        elif self.player_hand.is_Blackjack():
-            self.winner = "Player"
-            self.game_over = True
+            self.__player.hand.add_card(self.__deck.deal_single_card())
+            self.__dealer.hand.add_card(self.__deck.deal_single_card())
 
     def stand(self):
-        self.dealer_turn()
-        self.find_winner()
+        self.__player_done = True
 
-    def dealer_turn(self):
-        while self.dealer_hand.value() < 17:
-            self.dealer_hand.add_card(self.deck.deal_single_card())
+    def hit(self):
+        self.__player.hand.add_card(self.__deck.deal_single_card())
 
-    def find_winner(self):
-        player_value = self.player_hand.value()
-        dealer_value = self.player_hand.value()
-        if self.dealer_hand.is_bust():
-            self.winner = "Player"
-        elif dealer_value > player_value:
-            self.winner = "Dealer"
-        elif player_value > dealer_value:
-            self.winner = "Player"
-        else:
-            self.winner = "Tie"
-        self.game_over = True
+    def double(self):
+        self.__wager *= 2
 
-    def dealer_first_card(self):
-        if len(self.dealer_hand.cards) == 0:
-            return
-        return self.dealer_hand.cards[0]
+    def distribute_money(self):
+        if self.player_win == 1:
+            self.__account.deposit(self.wager * 2)
 
+    def reset(self):
+        self.__player.return_cards()
+        self.__dealer.return_cards()
+        self.player_win = -1
+        # self.reshuffle()
+        self.__live_game = False
+        self.__deck.shuffle()
+        self.__deck = Deck()
+        self.__player_done = False
+
+# from account import Account
+#
+# a = Account()
+# table = Table(a)
+# table.deal()
+# for card in table.player.hand.cards:
+#     print(str(card))
+
+# d = Deck()
+# for card in d.cards:
+#     print(card.rank)
