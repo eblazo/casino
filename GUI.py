@@ -787,13 +787,13 @@ while RUNNING:
 
             # Blackjack screen events
             if CURRENT_SCREEN == 3:
-                if _bj_small_bet.collidepoint(mouse_pos):
+                if _bj_small_bet.collidepoint(mouse_pos) and not blackjack.live_game:
                     blackjack.bet(5)
                     blackjack.deal()
-                elif _bj_medium_bet.collidepoint(mouse_pos):
+                elif _bj_medium_bet.collidepoint(mouse_pos) and not blackjack.live_game:
                     blackjack.bet(10)
                     blackjack.deal()
-                elif _bj_large_bet.collidepoint(mouse_pos):
+                elif _bj_large_bet.collidepoint(mouse_pos) and not blackjack.live_game:
                     blackjack.bet(25)
                     blackjack.deal()
                 elif _bj_stand.collidepoint(mouse_pos) and blackjack.live_game:
