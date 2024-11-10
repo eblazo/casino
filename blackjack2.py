@@ -1,4 +1,5 @@
 from random import shuffle
+from typing import Tuple
 
 
 class Card:
@@ -24,7 +25,7 @@ class Card:
         self.__face_up = face_up
 
     def __str__(self):
-        return self.suit, self.number
+        return f"{self.suit}, {self.number}"
 
 
 class Player:
@@ -53,7 +54,8 @@ class Player:
     def second_cards(self) -> list[Card]:
         return self.__second_cards
 
-    def play(self) -> tuple[int, int]:
+    def play(self) -> tuple[int, int, bool, bool]:
+        doubled_first, doubled_second = False, False
         self.__cards.append(self.__shoe.pop())
         self.__cards.append(self.__shoe.pop())
 
@@ -66,19 +68,23 @@ class Player:
 
         while True:
             print(f"player score: {self.score}")
-            if self.score >= 21:
+            if self.score > 21:
                 print(f"player score: {self.score}")
-                print('bust')
                 break
-            decision = input('h or s?')
+            decision = input('h or s or d?')
             if decision == 'h':
                 self.cards.append(self.__shoe.pop())
+            elif decision == 'd':
+                self.cards.append(self.__shoe.pop())
+                doubled_first = True
+                break
             elif decision == 's':
                 break
             else:
                 print('needs to be h or s')
+        print(f"player score: {self.score}")
 
-        if self.__second_cards:
+        if self.second_cards:
             self.__second_score = 0
             while True:
                 print("for hand 2")
@@ -87,20 +93,25 @@ class Player:
                     break
                 decision = input('h or s?')
                 if decision == 'h':
-                    self.second_cards.append(self.__shoe.pop())
+                    self.__second_cards.append(self.__shoe.pop())
+                if decision == 'd':
+                    self.__second_cards.append(self.__shoe.pop())
+                    doubled_second = True
+                    break
                 elif decision == 's':
                     break
                 else:
                     print('needs to be h or s')
+            print(f"player score: {self.second_score}")
 
-        return self.__score, self.__second_score
+        return self.__score, self.__second_score, doubled_first, doubled_second
 
     def clear_cards(self):
         cards = self.__cards + self.__second_cards
         self.__cards = []
         self.__second_cards = []
         self.__score = 0
-        self.__second_score = 0
+        self.__second_score = -1
         return cards
 
     @staticmethod
@@ -259,26 +270,23 @@ class Table:
             while True:
                 self.wager = int(input('wager?'))
                 self.__money -= self.wager
-                player_wins = 0
-                player_loses = 0
-                player_ties = 0
+                # 1 for a win, 0 for a loss, -1 for a tie
+                player_wins = [0, 0]
 
-                player_score_1, player_score_2 = self.__player.play()
+                player_score_1, player_score_2, doubled_first, doubled_second = self.__player.play()
 
-                if player_score_2 != -1:
+                if player_score_2 > 0:
                     self.split = True
                     self.__money -= self.wager
-
+                if doubled_first:
+                    self.__money -= self.wager
+                if doubled_second:
+                    self.__money -= self.wager
 
                 # if the player busts
-                if player_score_1 > 21:
-                    player_loses += 1
-                if player_score_2 > 21 and self.split:
-                    player_loses += 1
-
-                if player_loses == 2:
+                if player_score_1 > 21 and player_score_2 > 21:
                     break
-                if player_loses == 1 and not self.split:
+                if player_score_1 > 21 and not self.split:
                     break
 
                 dealer_score = self.__dealer.play()
@@ -286,47 +294,48 @@ class Table:
                 # if the dealer busts
                 if dealer_score > 21:
                     if not self.split:
-                        player_wins += 1
+                        player_wins[0] = 1
                         break
                     else:
                         if player_score_1 <= 21:
-                            player_wins += 1
+                            player_wins[0] = 1
                         if player_score_2 <= 21:
-                            player_wins += 1
+                            player_wins[1] = 1
                         break
 
                 # If neither bust
-                if not self.split:
-                    if player_score_1 > dealer_score:
-                        player_wins += 1
-                    elif player_score_1 == dealer_score:
-                        player_ties += 1
-                    else:
-                        player_loses += 1
-                    break
-                else:
-                    if player_score_1 > dealer_score:
-                        player_wins += 1
-                    elif player_score_1 == dealer_score:
-                        player_ties += 1
-                    else:
-                        player_loses += 1
+                if player_score_1 > dealer_score:
+                    player_wins[0] = 1
+                elif player_score_1 == dealer_score:
+                    player_wins[0] = -1
 
+                if self.split:
                     if player_score_2 > dealer_score:
-                        player_wins += 1
+                        player_wins[1] = 1
                     elif player_score_2 == dealer_score:
-                        player_ties += 1
-                    else:
-                        player_loses += 1
+                        player_wins[-1] = -1
                     break
+                break
 
             # Distribute money
-            payout = 0
-            for win in range(player_wins):
-                payout += self.wager
-            self.__money += payout
-            print(self.money)
-
+            if doubled_first and player_wins[0] == 1:
+                self.__money += self.wager * 4
+            elif doubled_first and player_wins[0] == -1:
+                self.__money += self.wager * 2
+            elif player_wins[0] == 1:
+                self.__money += self.wager * 2
+            elif player_wins[0] == -1:
+                self.__money += self.wager
+            if self.split:
+                if doubled_second and player_wins[1] == 1:
+                    self.__money += self.wager * 4
+                elif doubled_second and player_wins[1] == -1:
+                    self.__money += self.wager * 2
+                elif player_wins[1] == 1:
+                    self.__money += self.wager * 2
+                elif player_wins[1] == -1:
+                    self.__money += self.wager
+            print(f"money: {self.money}")
 
             again = input('play again y/n')
             if again == 'y':
