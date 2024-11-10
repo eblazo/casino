@@ -141,8 +141,9 @@ class Table:
             self.stand()
 
     def double(self):
+        if not self.__doubled:
+            self.__account.place_bet(self.__wager)
         self.__doubled = True
-        self.__account.place_bet(self.__wager)
 
     def reset(self):
         self.__player.hand.return_cards()
