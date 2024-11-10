@@ -38,7 +38,6 @@ class Deck:
 class Hand:
     def __init__(self):
         self.cards = []
-        # self.owner = owner
 
     def add_card(self, card):
         self.cards.append(card)
@@ -69,15 +68,10 @@ class Hand:
 class Player:
     def __init__(self):
         self.__hand = Hand()
-        # self.__score = 0
-        # self.__table = table
 
     @property
     def hand(self):
         return self.__hand
-
-    def score(self):
-        return self.__hand.value()
 
     def cards(self):
         return self.__hand.cards
@@ -89,16 +83,14 @@ class Player:
 
 class Table:
     def __init__(self, account):
-        # self.shoe = []
         self.__deck = Deck()
-        # 0 is they lost, 1 is they won, 2 is a tie, -1 is currently undecided
-        self.__player_win = -1
         self.__player = Player()
         self.__dealer = Player()
         self.__wager = 0
         self.__account = account
         self.__live_game = False
         self.__player_done = False
+        self.__doubled = False
 
     @property
     def player_win(self) -> int:
@@ -124,14 +116,9 @@ class Table:
     def dealer(self):
         return self.__dealer
 
-    @player_win.setter
-    def player_win(self, num_code: int):
-        if not isinstance(num_code, int):
-            raise TypeError('The player_win codes are integers')
-        if not num_code not in [-1, 0, 1, 2]:
-            raise ValueError('The player_win codes are from -1 to 2')
-
-        self.__player_win = num_code
+    @property
+    def doubled(self):
+        return self.__doubled
 
     def bet(self, amount):
         self.__wager = amount
@@ -145,35 +132,45 @@ class Table:
 
     def stand(self):
         self.__player_done = True
+        while self.__dealer.hand.value() <= 16 and self.player.hand.value() < 21:
+            self.__dealer.hand.add_card(self.__deck.deal_single_card())
 
     def hit(self):
         self.__player.hand.add_card(self.__deck.deal_single_card())
 
     def double(self):
-        self.__wager *= 2
-
-    def distribute_money(self):
-        if self.player_win == 1:
-            self.__account.deposit(self.wager * 2)
+        self.__doubled = True
+        self.__account.place_bet(self.__wager)
 
     def reset(self):
-        self.__player.return_cards()
-        self.__dealer.return_cards()
-        self.player_win = -1
-        # self.reshuffle()
+        self.__player.hand.return_cards()
+        self.__dealer.hand.return_cards()
         self.__live_game = False
         self.__deck.shuffle()
         self.__deck = Deck()
         self.__player_done = False
+        self.__doubled = False
 
-# from account import Account
-#
-# a = Account()
-# table = Table(a)
-# table.deal()
-# for card in table.player.hand.cards:
-#     print(str(card))
+    def winnings(self):
+        p_value = self.player.hand.value()
+        d_value = self.dealer.hand.value()
+        bet_amount = self.wager
+        if self.doubled:
+            bet_amount *= 2
 
-# d = Deck()
-# for card in d.cards:
-#     print(card.rank)
+        if p_value > 21:
+            return 0
+
+        elif d_value > 21:
+            return bet_amount * 2
+
+        if p_value == 21 and len(self.player.hand.cards) == 2:
+            return bet_amount + int(bet_amount * 1.5)
+
+        elif p_value > d_value:
+            return bet_amount * 2
+
+        elif p_value == d_value:
+            return bet_amount
+
+        return 0

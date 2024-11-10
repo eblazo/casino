@@ -660,6 +660,7 @@ def __draw_blackjack_screen(pygame, screen):
     pygame.draw.rect(screen, WHITE, _bj_small_bet)
     pygame.draw.rect(screen, WHITE, _bj_medium_bet)
     pygame.draw.rect(screen, WHITE, _bj_large_bet)
+    pygame.draw.rect(screen, WHITE, _bj_double)
 
     if blackjack.live_game:
         if blackjack.wager == 5:
@@ -675,15 +676,41 @@ def __draw_blackjack_screen(pygame, screen):
             pygame.draw.rect(screen, WHITE, _bj_medium_bet)
             pygame.draw.rect(screen, RED, _bj_large_bet)
 
+        if blackjack.doubled:
+            pygame.draw.rect(screen, RED, _bj_double)
+        else:
+            pygame.draw.rect(screen, WHITE, _bj_double)
+
     pygame.draw.rect(screen, WHITE, _bj_stand)
     pygame.draw.rect(screen, WHITE, _bj_hit)
-    pygame.draw.rect(screen, WHITE, _bj_double)
     screen.blit(_small_bet_text, (_bj_small_bet.x + 10, _bj_small_bet.y + 10))
     screen.blit(_medium_bet_text, (_bj_medium_bet.x + 8, _bj_medium_bet.y + 10))
     screen.blit(_large_bet_text, (_bj_large_bet.x + 8, _bj_large_bet.y + 10))
     screen.blit(_stand_text, (_bj_stand.x + 30, _bj_stand.y + 10))
     screen.blit(_hit_text, (_bj_hit.x + 30, _bj_hit.y + 10))
     screen.blit(_double_text, (_bj_double.x + 30, _bj_double.y + 10))
+
+
+card_font = pygame.font.SysFont("arial", 24)
+symbols = {
+    'H': "\u2665",
+    'D': "\u2666",
+    'C': "\u2663",
+    'S': "\u2660"}
+
+
+def __card_text(card: str):
+    card_name = card[:-1] + symbols[card[-1]]
+    if card[-1] in ['H', 'D']:
+        return card_font.render(card_name, True, RED)
+    return card_font.render(card_name, True, BLACK)
+
+
+def __card_symbol(card: str):
+    card_name = symbols[card[-1]]
+    if card[-1] in ['H', 'D']:
+        return card_font.render(card_name, True, RED)
+    return card_font.render(card_name, True, BLACK)
 
 
 CURRENT_SCREEN = 0
@@ -932,57 +959,96 @@ while RUNNING:
 
         __draw_blackjack_screen(pygame, screen)
 
-        # Dealers cards
-        pygame.draw.rect(screen, RED, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-        pygame.draw.rect(screen, RED, (CARD_X + 110, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+        # Dealers cards back
+        pygame.draw.rect(screen, RED, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
+        pygame.draw.rect(screen, RED, (CARD_X + 110, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
 
-        # Your cards
-        pygame.draw.rect(screen, RED, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-        pygame.draw.rect(screen, RED, (CARD_X + 110, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+        # Your cards back
+        pygame.draw.rect(screen, RED, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
+        pygame.draw.rect(screen, RED, (CARD_X + 110, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
 
         if blackjack.live_game:
             __draw_blackjack_screen(pygame, screen)
-
+            # print(blackjack.dealer.hand.cards)
+            # Draws the dealers showing card
             card = blackjack.dealer.hand.cards[0]
-            pygame.draw.rect(screen, WHITE, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-            card_text = small_font.render(str(card), True, BLACK)
-            screen.blit(card_text, (CARD_X + 10, DEALER_CARD_Y + 10))
+            pygame.draw.rect(screen, WHITE, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
+            card_text = __card_text(str(card))
+            diff = 33 if len(str(card)) == 2 else 38
+            screen.blit(card_text, (CARD_X + 7, DEALER_CARD_Y + 4))
+            screen.blit(card_text, (CARD_X + CARD_WIDTH - diff, DEALER_CARD_Y + CARD_HEIGHT - 30))
+            card_text = __card_symbol(str(card))
+            screen.blit(card_text, (CARD_X + 40, DEALER_CARD_Y + 63))
 
-            pygame.draw.rect(screen, RED, (CARD_X + 110, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
+            # Draws the dealers hidden card
+            pygame.draw.rect(screen, RED, (CARD_X + 110, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
 
             for card in blackjack.player.hand.cards:
-                pygame.draw.rect(screen, WHITE, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-                card_text = small_font.render(str(card), True, BLACK)
-                screen.blit(card_text, (CARD_X + 10, PLAYER_CARD_Y + 10))
+                # Draws the players two initial cards
+                pygame.draw.rect(screen, WHITE, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
+                card_text = __card_text(str(card))
+                diff = 33 if len(str(card)) == 2 else 38
+                screen.blit(card_text, (CARD_X + 7, PLAYER_CARD_Y + 4))
+                screen.blit(card_text, (CARD_X + CARD_WIDTH - diff, PLAYER_CARD_Y + CARD_HEIGHT - 30))
+                card_text = __card_symbol(str(card))
+                screen.blit(card_text, (CARD_X + 40, PLAYER_CARD_Y + 63))
+
                 CARD_X += 110
 
-            value_text = small_font.render("Value: " + str(blackjack.player.hand.value()), True, BLACK)
+            player_value = blackjack.player.hand.value()
+            value_text = small_font.render("Value: " + str(player_value), True, BLACK)
             screen.blit(value_text, (120, 530))
+
+            if player_value > 21:
+                blackjack.stand()
 
             CARD_X = 10
             if blackjack.player_done:
                 __draw_blackjack_screen(pygame, screen)
 
                 for card in blackjack.dealer.hand.cards:
-                    pygame.draw.rect(screen, WHITE, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-                    card_text = small_font.render(str(card), True, BLACK)
-                    screen.blit(card_text, (CARD_X + 10, DEALER_CARD_Y + 10))
+                    # Draws all the dealers cards at the end of the hand
+                    pygame.draw.rect(screen, WHITE, (CARD_X, DEALER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
+                    card_text = __card_text(str(card))
+                    diff = 30 if len(str(card)) == 2 else 40
+                    screen.blit(card_text, (CARD_X + 7, DEALER_CARD_Y + 4))
+                    screen.blit(card_text, (CARD_X + CARD_WIDTH - diff, DEALER_CARD_Y + CARD_HEIGHT - 30))
+                    card_text = __card_symbol(str(card))
+                    screen.blit(card_text, (CARD_X + 40, DEALER_CARD_Y + 63))
                     CARD_X += 110
 
                 CARD_X = 10
                 for card in blackjack.player.hand.cards:
-                    pygame.draw.rect(screen, WHITE, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT))
-                    card_text = small_font.render(str(card), True, BLACK)
-                    screen.blit(card_text, (CARD_X + 10, PLAYER_CARD_Y + 10))
+                    # Draws all the players cards at the end of the hand
+                    pygame.draw.rect(screen, WHITE, (CARD_X, PLAYER_CARD_Y, CARD_WIDTH, CARD_HEIGHT), border_radius=15)
+                    card_text = __card_text(str(card))
+                    diff = 33 if len(str(card)) == 2 else 38
+                    screen.blit(card_text, (CARD_X + 7, PLAYER_CARD_Y + 4))
+                    screen.blit(card_text, (CARD_X + CARD_WIDTH - diff, PLAYER_CARD_Y + CARD_HEIGHT - 30))
+                    card_text = __card_symbol(str(card))
+                    screen.blit(card_text, (CARD_X + 40, PLAYER_CARD_Y + 63))
                     CARD_X += 110
 
+                winnings = blackjack.winnings()
+                account.deposit(winnings)
 
+                # Draws win message on screen
+                if winnings > 0:
+                    # creates you win text
+                    bj_win_text = font.render("WIN $" + str(winnings), True, WHITE)
+                else:
+                    bj_win_text = font.render("LOSE", True, WHITE)
+                screen.blit(bj_win_text, (600, 100))
 
+                p_value_text = small_font.render("You: " + str(blackjack.player.hand.value()), True, WHITE)
+                d_value_text = small_font.render("Dealer: " + str(blackjack.dealer.hand.value()), True, WHITE)
+                screen.blit(d_value_text, (600, 150))
+                screen.blit(p_value_text, (600, 200))
+
+                pygame.display.flip()
+                time.sleep(5)
                 blackjack.reset()
 
-            # for card in blackjack.player.hand.cards:
-            #     print("players cards")
-            #     print(str(card))
 
 
 
