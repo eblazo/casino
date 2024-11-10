@@ -137,6 +137,8 @@ class Table:
 
     def hit(self):
         self.__player.hand.add_card(self.__deck.deal_single_card())
+        if self.doubled:
+            self.stand()
 
     def double(self):
         self.__doubled = True
