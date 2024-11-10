@@ -796,11 +796,11 @@ while RUNNING:
                 elif _bj_large_bet.collidepoint(mouse_pos):
                     blackjack.bet(25)
                     blackjack.deal()
-                elif _bj_stand.collidepoint(mouse_pos):
+                elif _bj_stand.collidepoint(mouse_pos) and blackjack.live_game:
                     blackjack.stand()
-                elif _bj_hit.collidepoint(mouse_pos):
+                elif _bj_hit.collidepoint(mouse_pos) and blackjack.live_game:
                     blackjack.hit()
-                elif _bj_double.collidepoint(mouse_pos):
+                elif _bj_double.collidepoint(mouse_pos) and blackjack.live_game:
                     blackjack.double()
 
             # Account screen events
