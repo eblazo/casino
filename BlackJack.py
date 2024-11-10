@@ -93,10 +93,6 @@ class Table:
         self.__doubled = False
 
     @property
-    def player_win(self) -> int:
-        return self.__player_win
-
-    @property
     def live_game(self):
         return self.__live_game
 
