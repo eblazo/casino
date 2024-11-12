@@ -58,6 +58,7 @@ GREEN0 = (0, 255, 0)
 GREEN1 = (0, 150, 25)
 GREEN2 = (0, 50, 0)
 GREEN3 = (0, 25, 0)
+SILVER = (165, 169, 180)
 
 # Create font
 font = pygame.font.SysFont(None, 48)
@@ -104,6 +105,11 @@ def __draw_screen_title(name: str):
     screen.blit(_title, (350, 5))  # Position the new message
 
 
+def __draw_slots_machine(pygame, screen):
+    _slots_machine = pygame.Rect(75, 60, 650, 600)
+    pygame.draw.rect(screen, SILVER, _slots_machine)
+
+
 # Slot Buttons, Methods and instantiation
 slots = Slots()
 # Create bet button
@@ -121,102 +127,138 @@ _BET_TEXT = ''
 _INVALID_BET_MESSAGE = ''
 _message_rect = pygame.Rect(200, 450, 400, 50)
 
+# Load images
+cherry_image = pygame.image.load("cherry.png")
+bar_image = pygame.image.load("bar.png")
+bell_image = pygame.image.load("bell.png")
+seven_image = pygame.image.load("seven.png")
+lemon_image = pygame.image.load("lemon.png")
+grape_image = pygame.image.load("grape.png")
+
+# Symbol list of images
+_symbols = [cherry_image, bar_image, bell_image, seven_image, lemon_image, grape_image]
+
+# Initialize Pygame mixer for sounds
+pygame.mixer.init()
 
 def __spin():
+    # Draw buttons and Squares to hide symbols
+    slots.total_count = 0
+    __draw_slots_machine(pygame, screen)
+    top_grey_square = pygame.Rect(100, 60, 600, 100)
+    pygame.draw.rect(screen, BLUE, top_grey_square)
+    bottom_grey_square = pygame.Rect(100, 360, 600, 200)
+    pygame.draw.rect(screen, BLUE, bottom_grey_square)
     balance_button = pygame.Rect(680, 0, 120, 40)
     pygame.draw.rect(screen, BLUE, balance_button)
     balance_button_text = small_font.render(str(account), True, WHITE)
     screen.blit(balance_button_text, (balance_button.x + 30, balance_button.y + 10))
 
+    # Assign variables with values
     slots.player_won = False
-    if not slots.spinning:
-        slots.spinning = True
-    _symbols = ['1', '2', '3', '4', '5', '7']
-    _all_outcomes = []
+    slots.spinning = True
+    current_symbols = [random.choice(_symbols) for _ in range(5)]
+    y_positions = [80] * 5
+    move_speed = 10
+    final_y_position = (_slot1.y + 200)
+    symbol_width = 85
+    symbol_height = 85
 
-    for _ in range(25):
-        _temp_symbols = [random.choice(_symbols) for _ in range(5)]
+    # Load and play music when spinning
+    pygame.mixer.music.load('spin_sound.mp3')
+    pygame.mixer.music.play(0, 0.0)
+
+    while True:
+        # Draw slots with borders
         pygame.draw.rect(screen, WHITE, _slot1)
         pygame.draw.rect(screen, WHITE, _slot2)
         pygame.draw.rect(screen, WHITE, _slot3)
         pygame.draw.rect(screen, WHITE, _slot4)
         pygame.draw.rect(screen, WHITE, _slot5)
-
-        # Redraw the black borders around the slot areas
         pygame.draw.rect(screen, BLACK, _slot1, 4)
         pygame.draw.rect(screen, BLACK, _slot2, 4)
         pygame.draw.rect(screen, BLACK, _slot3, 4)
         pygame.draw.rect(screen, BLACK, _slot4, 4)
         pygame.draw.rect(screen, BLACK, _slot5, 4)
 
-        # Render the new symbols
-        _temp_symbol1 = title_font.render(_temp_symbols[0], True, BLACK)
-        _temp_symbol2 = title_font.render(_temp_symbols[1], True, BLACK)
-        _temp_symbol3 = title_font.render(_temp_symbols[2], True, BLACK)
-        _temp_symbol4 = title_font.render(_temp_symbols[3], True, BLACK)
-        _temp_symbol5 = title_font.render(_temp_symbols[4], True, BLACK)
+        for i in range(5):
+            if not slots.symbols_bool_per_spin_lst[i]:
+                slots.total_count += 1
 
-        # Display the symbols inside the respective slots
-        screen.blit(_temp_symbol1, (_slot1.x + 30, _slot1.y + 80))
-        screen.blit(_temp_symbol2, (_slot2.x + 30, _slot2.y + 80))
-        screen.blit(_temp_symbol3, (_slot3.x + 30, _slot3.y + 80))
-        screen.blit(_temp_symbol4, (_slot4.x + 30, _slot4.y + 80))
-        screen.blit(_temp_symbol5, (_slot5.x + 30, _slot5.y + 80))
-        _all_outcomes.append(_temp_symbols)
+                # Resize symbol image before drawing it
+                symbol_surface = pygame.transform.scale(current_symbols[i], (symbol_width, symbol_height))
+                screen.blit(symbol_surface, (_slot1.x + 8 + (i * (_slot1.width + 25)), y_positions[i]))
+                y_positions[i] += move_speed
+
+                pygame.draw.rect(screen, SILVER, top_grey_square)
+                pygame.draw.rect(screen, SILVER, bottom_grey_square)
+
+                # draw after the grey squares
+                pygame.draw.rect(screen, WHITE, _bet_button)
+                pygame.draw.rect(screen, BLUE, _bet_button, 3)
+                screen.blit(_bet_text_surface, (_bet_button.x + 10, _bet_button.y + 10))
+                screen.blit(_place_bet_text, (_bet_button.x - 190, _bet_button.y + 10))
+                pygame.draw.rect(screen, BLUE, _spin_button)
+                screen.blit(_spin_button_text, (_spin_button.x + 10, _spin_button.y + 10))
+
+                # Reset symbol position if it passes final position
+                if y_positions[i] > final_y_position:
+                    current_symbols[i] = random.choice(_symbols)
+                    y_positions[i] = 80
+                if slots.total_count >= slots.overall_stop_conditions[i]:
+                    slots.symbols_bool_per_spin_lst[i] = True
+                    slots.final_symbols[i] = current_symbols[i]
+                    y_positions[i] = final_y_position  # Set final Y position when stopped
+
+        # Draw final symbols after they stop
+        for i in range(5):
+            if slots.symbols_bool_per_spin_lst[i]:
+                # Resize the final symbol to fit
+                final_symbol_surface = pygame.transform.scale(slots.final_symbols[i], (symbol_width, symbol_height))
+                screen.blit(final_symbol_surface, (_slot1.x + 8 + (i * (_slot1.width + 25)), (final_y_position - 140)))
+
         pygame.display.update()
-        pygame.time.delay(150)
-        # print(f'all outcomes: {_all_outcomes}')
+        pygame.time.delay(1)
 
-    slots.final_symbols = _all_outcomes[-1]
-    # print(f'final symbols: {slots.final_symbols}')
+        if all(slots.symbols_bool_per_spin_lst):
+            break
 
-    # Check for a win and store the winning indices
-    slots.win_slots = slots.check_win(slots.final_symbols)
-    if slots.win_slots:
-        slots.player_won = True
-        print('You win!')
-        print(f'Winning indices: {slots.win_slots}')  # Print the indices of winning symbols
-        account.deposit(5 * int(_BET_TEXT))
-    else:
-        slots.player_won = False
-        print('No win.')
-
-    pygame.display.update()
+    # reset variables
+    slots.symbols_bool_per_spin_lst = [False, False, False, False, False]
     slots.final_symbols_displayed = True
     slots.spinning = False
 
+    # Check to see if player won
+    slots.check_win(slots.final_symbols)
+    if slots.multiplier > 0:
+        # multiply the multiplier by bet amount and add that to account balance
+        slots.player_won = True
+        account.deposit(slots.multiplier * int(_BET_TEXT))
+    else:
+        slots.player_won = False
+
 
 def __display_final_symbols():
-    _winning_color = (255, 215, 0)  # Gold color for winning symbols
-    _symbol_color = BLACK  # Default color for non-winning symbols
+    _winning_color = (255, 215, 0)
+    _symbol_color = BLACK
+
+    # Target dimensions for each symbol image
+    symbol_width = 85
+    symbol_height = 85
 
     if slots.final_symbols_displayed:
-        # Loop through each symbol and display it
         for i in range(5):
-            # If the current index is a winning index, use the winning color
-            if i in slots.win_slots:
-                _color = _winning_color
-            else:
-                _color = _symbol_color
+            # re-size images to fit in the slots
+            _final_symbol_image = pygame.transform.scale(slots.final_symbols[i], (symbol_width, symbol_height))
 
-            # Render the symbol with the appropriate color
-            _final_symbol = title_font.render(slots.final_symbols[i], True, _color)
+            slot_x = [_slot1.x, _slot2.x, _slot3.x, _slot4.x, _slot5.x]
+            screen.blit(_final_symbol_image, (slot_x[i] + 8, _slot1.y + 60))
 
-            # Display the symbol in its respective slot
-            if i == 0:
-                screen.blit(_final_symbol, (_slot1.x + 30, _slot1.y + 80))
-            elif i == 1:
-                screen.blit(_final_symbol, (_slot2.x + 30, _slot2.y + 80))
-            elif i == 2:
-                screen.blit(_final_symbol, (_slot3.x + 30, _slot3.y + 80))
-            elif i == 3:
-                screen.blit(_final_symbol, (_slot4.x + 30, _slot4.y + 80))
-            elif i == 4:
-                screen.blit(_final_symbol, (_slot5.x + 30, _slot5.y + 80))
-
+        # Display "You Win!" message if the player has won
         if slots.player_won:
             _win_message = title_font.render("You Win!", True, _winning_color)
-            screen.blit(_win_message, (250, 50))  # Adjust position as needed
+            screen.blit(_win_message, (250, 80))
+
             pygame.display.update()
 
 
@@ -846,6 +888,10 @@ while RUNNING:
     # Slots screen
     elif CURRENT_SCREEN == 1:
         screen.fill(GREEN)
+        # slots_machine = pygame.Rect(20, 48, 760, 600)
+        # pygame.draw.rect(screen, SILVER, slots_machine)
+
+        __draw_slots_machine(pygame, screen)
 
         # Slots title at top of screen
         __draw_screen_title("Slots")
@@ -856,10 +902,12 @@ while RUNNING:
         # Account display / button
         __draw_balance_button(pygame, screen)
 
+        # white rectangle behind blue border
+        pygame.draw.rect(screen, WHITE, _bet_button)
         # bet amount rectangle
-        pygame.draw.rect(screen, BLUE, _bet_button, 2)
-        _text_surface = font.render(_BET_TEXT, True, BLACK)
-        screen.blit(_text_surface, (_bet_button.x + 10, _bet_button.y + 10))
+        pygame.draw.rect(screen, BLUE, _bet_button, 3)
+        _bet_text_surface = font.render(_BET_TEXT, True, BLACK)
+        screen.blit(_bet_text_surface, (_bet_button.x + 10, _bet_button.y + 10))
 
         # place bet text
         _place_bet_text = font.render('Place bet: $', True, BLACK)
@@ -899,8 +947,6 @@ while RUNNING:
                             __spin()
                         if slots.spinning:
                             slots.spinning = True
-                        __display_final_symbols()
-                        # pygame.display.update()
                     else:
                         _INVALID_BET_MESSAGE = 'You cannot bet more than you have!'
 
