@@ -82,10 +82,6 @@ _add_button1_text = font.render("$20", True, WHITE)
 _add_button2_text = font.render("$50", True, WHITE)
 _add_button3_text = font.render("$100", True, WHITE)
 
-# Creates back button
-_back_button = pygame.Rect(0, 0, 120, 40)
-_back_button_text = small_font.render("Back", True, WHITE)
-
 # Create balance button outside the loop
 _balance_button = pygame.Rect(680, 0, 120, 40)
 
@@ -95,7 +91,13 @@ def __draw_balance_button(pygame, screen):
     screen.blit(_balance_button_text, (_balance_button.x + 30, _balance_button.y + 10))
 
 
-def __draw_back_button(pygame, screen):
+_back_button = pygame.Rect(0, 0, 120, 40)
+
+
+def __draw_back_button(pygame, screen, label):
+    # Creates back button
+
+    _back_button_text = small_font.render(label, True, WHITE)
     pygame.draw.rect(screen, BLUE, _back_button)
     screen.blit(_back_button_text, (_back_button.x + 30, _back_button.y + 10))
 
@@ -140,6 +142,7 @@ _symbols = [cherry_image, bar_image, bell_image, seven_image, lemon_image, grape
 
 # Initialize Pygame mixer for sounds
 pygame.mixer.init()
+
 
 def __spin():
     # Draw buttons and Squares to hide symbols
@@ -218,7 +221,7 @@ def __spin():
                 screen.blit(final_symbol_surface, (_slot1.x + 8 + (i * (_slot1.width + 25)), (final_y_position - 140)))
 
         pygame.display.update()
-        pygame.time.delay(1)
+        pygame.time.delay(2)
 
         if all(slots.symbols_bool_per_spin_lst):
             break
@@ -514,7 +517,7 @@ def __draw_roulette_screen(pygame, screen):
 
     __draw_screen_title("Roulette")
 
-    __draw_back_button(pygame, screen)
+    __draw_back_button(pygame, screen, "Home")
 
     __draw_balance_button(pygame, screen)
 
@@ -685,7 +688,7 @@ def __draw_blackjack_screen(pygame, screen):
     __draw_screen_title("Blackjack")
 
     # Back button
-    __draw_back_button(pygame, screen)
+    __draw_back_button(pygame, screen, "Home")
 
     # Account display / button
     __draw_balance_button(pygame, screen)
@@ -756,6 +759,7 @@ def __card_symbol(card: str):
 
 
 CURRENT_SCREEN = 0
+LAST_SCREEN = 0
 # Main loop
 RUNNING = True
 while RUNNING:
@@ -771,9 +775,12 @@ while RUNNING:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
             # Universal back and account button
-            if _back_button.collidepoint(mouse_pos):
+            if _back_button.collidepoint(mouse_pos) and CURRENT_SCREEN == 4:
+                CURRENT_SCREEN = LAST_SCREEN
+            elif _back_button.collidepoint(mouse_pos):
                 CURRENT_SCREEN = 0
             if _balance_button.collidepoint(mouse_pos):
+                LAST_SCREEN = CURRENT_SCREEN
                 CURRENT_SCREEN = 4
 
             # Menu screen button actions
@@ -897,7 +904,7 @@ while RUNNING:
         __draw_screen_title("Slots")
 
         # Back button
-        __draw_back_button(pygame, screen)
+        __draw_back_button(pygame, screen, "Home")
 
         # Account display / button
         __draw_balance_button(pygame, screen)
@@ -1106,7 +1113,7 @@ while RUNNING:
         __draw_screen_title("Account")
 
         # Back button
-        __draw_back_button(pygame, screen)
+        __draw_back_button(pygame, screen, "Back")
 
         # Displays Account Balance
         screen.blit(title_font.render(str(account), True, BLACK), (325, 100))
