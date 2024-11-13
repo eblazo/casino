@@ -1,6 +1,25 @@
 
 class Slots:
+    """
+    Represents a slots machine game where a user enters a bet and spins, and either wins or loses.
+    
+    Attributes:
+        spinning (bool): Indicates if the slots are spinning or not.
+        final_symbols (list): List that contains the final symbols of the spin.
+        final_symbols_displayed (bool): Indicates if the final symbols are shown.
+        symbols_bool_per_spin_lst (list): List of boolean values that tracks whether each individual slot has stopped 
+                                        spinning.
+        overall_stop_conditions (list): List of integers that represents how many frames each individual slot should 
+                                        spin.
+        total_count (int): Represents each frame that the slots spin.
+        multiplier (int): Multiplier for the win payout based on the number of symbols matched.
+        
+    Methods:
+        check_win: Determines the winning multiplier based on the final symbols displayed.
+    
+    """
     def __init__(self):
+        """Initialize the Slots game with default settings."""
         self.spinning = False
         self.final_symbols = [0, 0, 0, 0, 0]
         self.final_symbols_displayed = False
@@ -11,6 +30,17 @@ class Slots:
         self.multiplier = 0
 
     def check_win(self, final_symbols):
+        """
+        Determines the winning multiplier based on the final symbols displayed.
+        
+        Args:
+            final_symbols (list): List that contains the final symbols of the spin.
+            
+        Returns:
+            The winning multiplier, which is 15 if there are 5 symbols in a wor, 10 if there are 4 symbols in a row, 5
+            if there are 3 symbols in a row, and 0 if there is not a match of 3 or more.
+            
+        """
         self.multiplier = 0
 
         # Check for 5 in a row
