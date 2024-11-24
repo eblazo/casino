@@ -6,7 +6,7 @@ from Roulette import Roulette
 from Slots import Slots
 
 
-class TestYourClassOrFunction(unittest.TestCase):
+class TestCasinoGameLogic(unittest.TestCase):
 
     def test_roulette_update_balance(self):
         # Checks that the account balance is updated correctly when the player
@@ -189,4 +189,3 @@ class TestYourClassOrFunction(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
